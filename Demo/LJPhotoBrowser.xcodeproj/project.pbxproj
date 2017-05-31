@@ -61,6 +61,7 @@
 		A7B59BB71EDD43D700C3CB42 /* SVProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = A7B59B861EDD43D700C3CB42 /* SVProgressHUD.m */; };
 		A7B59BB81EDD43D700C3CB42 /* SVRadialGradientLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = A7B59B881EDD43D700C3CB42 /* SVRadialGradientLayer.m */; };
 		A7F62DCE1EDEA68B0082C324 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7F62DCD1EDEA68B0082C324 /* ViewController.m */; };
+		A7F62DDA1EDEAFE60082C324 /* LJPhoto.m in Sources */ = {isa = PBXBuildFile; fileRef = A7F62DD91EDEAFE60082C324 /* LJPhoto.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -197,6 +198,9 @@
 		A7F62DC21EDEA4D10082C324 /* LJCommonHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LJCommonHeader.h; sourceTree = "<group>"; };
 		A7F62DCC1EDEA68B0082C324 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		A7F62DCD1EDEA68B0082C324 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		A7F62DD61EDEACDA0082C324 /* LJPhotoProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LJPhotoProtocol.h; sourceTree = "<group>"; };
+		A7F62DD81EDEAFE60082C324 /* LJPhoto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJPhoto.h; sourceTree = "<group>"; };
+		A7F62DD91EDEAFE60082C324 /* LJPhoto.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJPhoto.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -454,6 +458,9 @@
 			isa = PBXGroup;
 			children = (
 				A7F62DC21EDEA4D10082C324 /* LJCommonHeader.h */,
+				A7F62DD61EDEACDA0082C324 /* LJPhotoProtocol.h */,
+				A7F62DD81EDEAFE60082C324 /* LJPhoto.h */,
+				A7F62DD91EDEAFE60082C324 /* LJPhoto.m */,
 			);
 			name = LJPhotoBrowser;
 			sourceTree = "<group>";
@@ -617,6 +624,7 @@
 				A7B59BAE1EDD43D700C3CB42 /* UIImage+GIF.m in Sources */,
 				A7B59BAB1EDD43D700C3CB42 /* SDWebImageManager.m in Sources */,
 				A7B59B9F1EDD43D700C3CB42 /* PSTGridLayoutInfo.m in Sources */,
+				A7F62DDA1EDEAFE60082C324 /* LJPhoto.m in Sources */,
 				A7B59B991EDD43D700C3CB42 /* PSTCollectionViewController.m in Sources */,
 				A7B59B931EDD43D700C3CB42 /* View+MASAdditions.m in Sources */,
 				A7B59BB11EDD43D700C3CB42 /* UIImageView+WebCache.m in Sources */,
