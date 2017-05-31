@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "LJPhotoBrowser.h"
+#import "LJCommonMacro.h"
 
 @interface ViewController () {
     UISegmentedControl *_segmentedControl;
