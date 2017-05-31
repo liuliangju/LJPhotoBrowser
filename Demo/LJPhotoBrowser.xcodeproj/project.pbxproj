@@ -278,17 +278,17 @@
 		A7B59B1B1EDD43D700C3CB42 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				A7B59B1C1EDD43D700C3CB42 /* DACircularProgress */,
-				A7B59B211EDD43D700C3CB42 /* Masonry */,
-				A7B59B3B1EDD43D700C3CB42 /* MBProgressHUD */,
-				A7B59B3E1EDD43D700C3CB42 /* PSTCollectionView */,
-				A7B59B5B1EDD43D700C3CB42 /* SDWebImage */,
-				A7B59B7F1EDD43D700C3CB42 /* SVProgressHUD */,
+				A7B59B1C1EDD43D700C3CB42 /* DACircularProgress(2.3.1) */,
+				A7B59B211EDD43D700C3CB42 /* Masonry(1.0.2) */,
+				A7B59B3B1EDD43D700C3CB42 /* MBProgressHUD(1.0.0) */,
+				A7B59B3E1EDD43D700C3CB42 /* PSTCollectionView(1.2.3) */,
+				A7B59B5B1EDD43D700C3CB42 /* SDWebImage(4.0.0) */,
+				A7B59B7F1EDD43D700C3CB42 /* SVProgressHUD(2.1.2) */,
 			);
 			path = Libraries;
 			sourceTree = "<group>";
 		};
-		A7B59B1C1EDD43D700C3CB42 /* DACircularProgress */ = {
+		A7B59B1C1EDD43D700C3CB42 /* DACircularProgress(2.3.1) */ = {
 			isa = PBXGroup;
 			children = (
 				A7B59B1D1EDD43D700C3CB42 /* DACircularProgressView.h */,
@@ -296,10 +296,11 @@
 				A7B59B1F1EDD43D700C3CB42 /* DALabeledCircularProgressView.h */,
 				A7B59B201EDD43D700C3CB42 /* DALabeledCircularProgressView.m */,
 			);
+			name = "DACircularProgress(2.3.1)";
 			path = DACircularProgress;
 			sourceTree = "<group>";
 		};
-		A7B59B211EDD43D700C3CB42 /* Masonry */ = {
+		A7B59B211EDD43D700C3CB42 /* Masonry(1.0.2) */ = {
 			isa = PBXGroup;
 			children = (
 				A7B59B221EDD43D700C3CB42 /* MASCompositeConstraint.h */,
@@ -328,19 +329,21 @@
 				A7B59B391EDD43D700C3CB42 /* ViewController+MASAdditions.h */,
 				A7B59B3A1EDD43D700C3CB42 /* ViewController+MASAdditions.m */,
 			);
+			name = "Masonry(1.0.2)";
 			path = Masonry;
 			sourceTree = "<group>";
 		};
-		A7B59B3B1EDD43D700C3CB42 /* MBProgressHUD */ = {
+		A7B59B3B1EDD43D700C3CB42 /* MBProgressHUD(1.0.0) */ = {
 			isa = PBXGroup;
 			children = (
 				A7B59B3C1EDD43D700C3CB42 /* MBProgressHUD.h */,
 				A7B59B3D1EDD43D700C3CB42 /* MBProgressHUD.m */,
 			);
+			name = "MBProgressHUD(1.0.0)";
 			path = MBProgressHUD;
 			sourceTree = "<group>";
 		};
-		A7B59B3E1EDD43D700C3CB42 /* PSTCollectionView */ = {
+		A7B59B3E1EDD43D700C3CB42 /* PSTCollectionView(1.2.3) */ = {
 			isa = PBXGroup;
 			children = (
 				A7B59B3F1EDD43D700C3CB42 /* NSIndexPath+PSTCollectionViewAdditions.h */,
@@ -372,10 +375,11 @@
 				A7B59B591EDD43D700C3CB42 /* PSTGridLayoutSection.h */,
 				A7B59B5A1EDD43D700C3CB42 /* PSTGridLayoutSection.m */,
 			);
+			name = "PSTCollectionView(1.2.3)";
 			path = PSTCollectionView;
 			sourceTree = "<group>";
 		};
-		A7B59B5B1EDD43D700C3CB42 /* SDWebImage */ = {
+		A7B59B5B1EDD43D700C3CB42 /* SDWebImage(4.0.0) */ = {
 			isa = PBXGroup;
 			children = (
 				A7B59B5C1EDD43D700C3CB42 /* NSData+ImageContentType.h */,
@@ -414,10 +418,11 @@
 				A7B59B7D1EDD43D700C3CB42 /* UIView+WebCacheOperation.h */,
 				A7B59B7E1EDD43D700C3CB42 /* UIView+WebCacheOperation.m */,
 			);
+			name = "SDWebImage(4.0.0)";
 			path = SDWebImage;
 			sourceTree = "<group>";
 		};
-		A7B59B7F1EDD43D700C3CB42 /* SVProgressHUD */ = {
+		A7B59B7F1EDD43D700C3CB42 /* SVProgressHUD(2.1.2) */ = {
 			isa = PBXGroup;
 			children = (
 				A7B59B801EDD43D700C3CB42 /* SVIndefiniteAnimatedView.h */,
@@ -430,6 +435,7 @@
 				A7B59B871EDD43D700C3CB42 /* SVRadialGradientLayer.h */,
 				A7B59B881EDD43D700C3CB42 /* SVRadialGradientLayer.m */,
 			);
+			name = "SVProgressHUD(2.1.2)";
 			path = SVProgressHUD;
 			sourceTree = "<group>";
 		};
@@ -809,6 +815,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = ZKWSDFFC99;
 				INFOPLIST_FILE = LJPhotoBrowser/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = liangju.LJPhotoBrowser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -821,6 +828,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = ZKWSDFFC99;
 				INFOPLIST_FILE = LJPhotoBrowser/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = liangju.LJPhotoBrowser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
