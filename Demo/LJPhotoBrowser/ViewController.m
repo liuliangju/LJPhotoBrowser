@@ -8,7 +8,9 @@
 
 #import "ViewController.h"
 
-@interface ViewController ()
+@interface ViewController () {
+    UISegmentedControl *_segmentedControl;
+}
 
 @end
 
@@ -24,10 +26,38 @@
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+
+- (void)viewWillAppear:(BOOL)animated {
+    _segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"Push", @"Modal", @"Transition", nil]];
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
+    if (SYSTEM_VERSION_LESS_THAN(@"7")) {
+        _segmentedControl.segmentedControlStyle = UISegmentedControlStyleBar;
+    }
+#endif
+    _segmentedControl.selectedSegmentIndex = 0;
+    [_segmentedControl addTarget:self action:@selector(segmentChange) forControlEvents:UIControlEventValueChanged];
+    UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:_segmentedControl];
+    self.navigationItem.rightBarButtonItem = item;
 }
+
+- (void)segmentChange {
+    
+}
+
+#pragma mark View
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    return YES;
+}
+
+- (BOOL)prefersStatusBarHidden {
+    return NO;
+}
+
+- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
+    return UIStatusBarAnimationNone;
+}
+
 
 #pragma mark - Table view data source
 
@@ -94,5 +124,11 @@
  // Pass the selected object to the new view controller.
  }
  */
+
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
 
 @end
