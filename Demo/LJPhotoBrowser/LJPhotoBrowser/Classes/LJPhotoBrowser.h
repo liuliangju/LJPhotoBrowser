@@ -1,14 +1,13 @@
 //
-//  ViewController.h
+//  LJPhotoBrowser.h
 //  LJPhotoBrowser
 //
-//  Created by liuliangju on 5/30/17.
+//  Created by liangju on 5/31/17.
 //  Copyright © 2017 https://liuliangju.github.io. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UITableViewController
+@interface LJPhotoBrowser : UIViewController
 
 @end
-
