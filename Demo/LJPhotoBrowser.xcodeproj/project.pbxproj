@@ -244,7 +244,7 @@
 		A7B59A431EDD3E0700C3CB42 /* LJPhotoBrowser */ = {
 			isa = PBXGroup;
 			children = (
-				A7B59BB91EDD442900C3CB42 /* LJPhotoBrowser */,
+				A7F62DBC1EDEA0E40082C324 /* LJPhotoBrowser */,
 				A7B59A471EDD3E0700C3CB42 /* AppDelegate.h */,
 				A7B59A481EDD3E0700C3CB42 /* AppDelegate.m */,
 				A7B59A4A1EDD3E0700C3CB42 /* ViewController.h */,
@@ -425,15 +425,15 @@
 			path = SVProgressHUD;
 			sourceTree = "<group>";
 		};
-		A7B59BB91EDD442900C3CB42 /* LJPhotoBrowser */ = {
+		A7F62DBC1EDEA0E40082C324 /* LJPhotoBrowser */ = {
 			isa = PBXGroup;
 			children = (
-				A7B59BBA1EDD442900C3CB42 /* Classes */,
+				A7F62DBD1EDEA0E40082C324 /* Classes */,
 			);
 			path = LJPhotoBrowser;
 			sourceTree = "<group>";
 		};
-		A7B59BBA1EDD442900C3CB42 /* Classes */ = {
+		A7F62DBD1EDEA0E40082C324 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
 			);
