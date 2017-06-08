@@ -31,7 +31,7 @@
 
 
 - (void)viewWillAppear:(BOOL)animated {
-    _segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"Push", @"Modal", @"Transition", nil]];
+    _segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"Push", @"Modal", @"Full", nil]];
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
     if (SYSTEM_VERSION_LESS_THAN(@"7")) {
         _segmentedControl.segmentedControlStyle = UISegmentedControlStyleBar;
