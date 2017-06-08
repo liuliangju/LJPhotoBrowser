@@ -55,10 +55,6 @@
 
 @optional
 
-// Return a caption string to be displayed over the image
-// Return nil to display no caption
-- (NSString *)caption;
-
 // Cancel any background loading of image data
 - (void)cancelAnyLoading;
 

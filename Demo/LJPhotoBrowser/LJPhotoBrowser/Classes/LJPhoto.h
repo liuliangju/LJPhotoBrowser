@@ -11,16 +11,16 @@
 
 @interface LJPhoto : NSObject <LJPhoto>
 
-@property (nonatomic, strong) NSString *caption;
 @property (nonatomic, strong, readonly) UIImage *image;
+@property (nonatomic, strong, readonly) UIImage *placeHolder;
 @property (nonatomic, copy, readonly) NSURL *photoURL;
 @property (nonatomic, copy, readonly) NSString *filePath;
+@property (nonatomic, assign, readonly) BOOL isHaveOriginalImg;
 
 
 + (LJPhoto *)photoWithImage:(UIImage *)image;
 + (LJPhoto *)photoWithFilePath:(NSString *)path;
 + (LJPhoto *)photoWithURL:(NSURL *)url;
-
 
 - (instancetype)initWithImage:(UIImage *)image;
 - (instancetype)initWithURL:(NSURL *)url;

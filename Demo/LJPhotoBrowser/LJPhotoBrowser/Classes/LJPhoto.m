@@ -8,7 +8,6 @@
 
 #import "LJPhoto.h"
 
-
 @interface LJPhoto ()
 
 @end
