@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A71DC4141EE9A0B7000DE03E /* LJTapDetectingImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = A71DC4131EE9A0B7000DE03E /* LJTapDetectingImageView.m */; };
 		A71DC4171EE9A0D0000DE03E /* LJTapDetectingView.m in Sources */ = {isa = PBXBuildFile; fileRef = A71DC4161EE9A0D0000DE03E /* LJTapDetectingView.m */; };
+		A71DC41B1EEA0C8C000DE03E /* LJZoomingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = A71DC41A1EEA0C8C000DE03E /* LJZoomingScrollView.m */; };
 		A779A5F21EE99A7E00A5C6EF /* FLAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = A779A5C61EE99A7E00A5C6EF /* FLAnimatedImage.m */; };
 		A779A5F31EE99A7E00A5C6EF /* FLAnimatedImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = A779A5C81EE99A7E00A5C6EF /* FLAnimatedImageView.m */; };
 		A779A5F61EE99A7E00A5C6EF /* FLAnimatedImageView+WebCache.m in Sources */ = {isa = PBXBuildFile; fileRef = A779A5CE1EE99A7E00A5C6EF /* FLAnimatedImageView+WebCache.m */; };
@@ -104,6 +105,8 @@
 		A71DC4131EE9A0B7000DE03E /* LJTapDetectingImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJTapDetectingImageView.m; sourceTree = "<group>"; };
 		A71DC4151EE9A0D0000DE03E /* LJTapDetectingView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJTapDetectingView.h; sourceTree = "<group>"; };
 		A71DC4161EE9A0D0000DE03E /* LJTapDetectingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJTapDetectingView.m; sourceTree = "<group>"; };
+		A71DC4191EEA0C8C000DE03E /* LJZoomingScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJZoomingScrollView.h; sourceTree = "<group>"; };
+		A71DC41A1EEA0C8C000DE03E /* LJZoomingScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJZoomingScrollView.m; sourceTree = "<group>"; };
 		A779A5C51EE99A7E00A5C6EF /* FLAnimatedImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FLAnimatedImage.h; sourceTree = "<group>"; };
 		A779A5C61EE99A7E00A5C6EF /* FLAnimatedImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLAnimatedImage.m; sourceTree = "<group>"; };
 		A779A5C71EE99A7E00A5C6EF /* FLAnimatedImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FLAnimatedImageView.h; sourceTree = "<group>"; };
@@ -565,6 +568,8 @@
 		A7F62DC01EDEA4AC0082C324 /* Others */ = {
 			isa = PBXGroup;
 			children = (
+				A71DC4191EEA0C8C000DE03E /* LJZoomingScrollView.h */,
+				A71DC41A1EEA0C8C000DE03E /* LJZoomingScrollView.m */,
 				A71DC4121EE9A0B7000DE03E /* LJTapDetectingImageView.h */,
 				A71DC4131EE9A0B7000DE03E /* LJTapDetectingImageView.m */,
 				A71DC4151EE9A0D0000DE03E /* LJTapDetectingView.h */,
@@ -778,6 +783,7 @@
 				A7B59B971EDD43D700C3CB42 /* PSTCollectionView.m in Sources */,
 				A7B59B8D1EDD43D700C3CB42 /* MASConstraintMaker.m in Sources */,
 				A7B59B981EDD43D700C3CB42 /* PSTCollectionViewCell.m in Sources */,
+				A71DC41B1EEA0C8C000DE03E /* LJZoomingScrollView.m in Sources */,
 				A779A5FB1EE99A7E00A5C6EF /* SDWebImageCompat.m in Sources */,
 				A779A5F61EE99A7E00A5C6EF /* FLAnimatedImageView+WebCache.m in Sources */,
 				A71DC4141EE9A0B7000DE03E /* LJTapDetectingImageView.m in Sources */,
