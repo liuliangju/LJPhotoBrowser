@@ -14,12 +14,16 @@
 
 @property (nonatomic, assign) NSUInteger index;
 @property (nonatomic, strong) LJPhoto *photo;
+@property (nonatomic, weak) UIButton *playButton;
+
 
 - (instancetype)initWithPhotoBrowser:(LJPhotoBrowser *)browser;
 - (void)displayImage;
 - (void)displayImageFailure;
 - (void)setMaxMinZoomScalesForCurrentBounds;
 - (void)prepareForReuse;
+- (BOOL)displayingVideo;
+- (void)setImageHidden:(BOOL)hidden;
 
 
 @end
