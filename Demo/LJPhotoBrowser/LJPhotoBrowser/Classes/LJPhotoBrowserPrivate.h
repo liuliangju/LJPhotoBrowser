@@ -18,12 +18,13 @@
     // Data
     NSUInteger _photoCount;
     NSMutableArray *_photos;
+    NSMutableArray *_thumbPhotos;
     NSArray *_fixedPhotosArray; // Provided via init
 
     // Views
     UIScrollView *_pagingScrollView;
-    UIView *backgroundView;           // The false background of the false at the beginning
-    UIImageView *avatarImageView;     // The false background‘s ImageView at the beginning
+    UIView *_backgroundView;           // The false background of the false at the beginning
+    UIImageView *_avatarImageView;     // The false background‘s ImageView at the beginning
     
     // Paging & layout
     NSMutableSet *_visiblePages, *_recycledPages;

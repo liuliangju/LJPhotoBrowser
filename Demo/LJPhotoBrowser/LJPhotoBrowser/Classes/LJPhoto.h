@@ -7,22 +7,30 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <Photos/Photos.h>
 #import "LJPhotoProtocol.h"
 
 @interface LJPhoto : NSObject <LJPhoto>
 
-@property (nonatomic, strong, readonly) UIImage *image;
-@property (nonatomic, strong, readonly) UIImage *placeHolder;
-@property (nonatomic, copy, readonly) NSURL *photoURL;
-@property (nonatomic, copy, readonly) NSString *filePath;
-@property (nonatomic, assign, readonly) BOOL isHaveOriginalImg;
+//@property (nonatomic, strong) NSString *caption;
+@property (nonatomic, strong) NSURL *videoURL;
+@property (nonatomic, strong) id image;
+@property (nonatomic, strong) UIImage *placeHolder;
+@property (nonatomic) BOOL emptyImage;
+@property (nonatomic) BOOL isVideo;
+@property (nonatomic) BOOL isHaveOriginalImg;
+@property (nonatomic, assign) CGRect imageFrame;
+
 
 
 + (LJPhoto *)photoWithImage:(UIImage *)image;
++ (LJPhoto *)photoWithData:(NSData *)gifImage;
+
 + (LJPhoto *)photoWithFilePath:(NSString *)path;
 + (LJPhoto *)photoWithURL:(NSURL *)url;
 
-- (instancetype)initWithImage:(UIImage *)image;
+
+- (instancetype)initWithImage:(id)image;
 - (instancetype)initWithURL:(NSURL *)url;
 - (instancetype)initWithFilePath:(NSString *)path;
 

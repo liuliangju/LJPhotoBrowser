@@ -24,14 +24,17 @@
 @end
 
 @interface LJPhotoBrowser : UIViewController <UIScrollViewDelegate>
+//{
+//    BOOL _isWindow;    // whether to adopt the Window as a background
+//}
 
 @property (nonatomic, weak) IBOutlet id<LJPhotoBrowserDelegate> delegate;
-
-
+@property (nonatomic, assign) BOOL isWindow;
 // Init
 - (instancetype)initWithDelegate:(id <LJPhotoBrowserDelegate>)delegate;
 - (instancetype)initWithPhotos:(NSArray *)photosArray;
 - (void)showPhotos:(NSArray *)photos fromIndex:(NSInteger)index; //This way the initialization using Window as a background
+- (void)showPhotoBrowserWithFirstPhoto:(LJPhoto *)photo;
 
 
 // Reloads the photo browser and refetches data
