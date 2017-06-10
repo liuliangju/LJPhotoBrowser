@@ -38,6 +38,19 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return self;
 }
 
+- (instancetype)initWithPhotos:(NSArray *)photosArray {
+    self = [self init];
+    if (self) {
+        _fixedPhotosArray = photosArray;
+    }
+    return self;
+}
+
+- (void)showPhotos:(NSArray *)photos fromIndex:(NSInteger)index {
+    
+    
+}
+
 - (void)p_initialisation {
 
     

@@ -22,6 +22,8 @@
 
     // Views
     UIScrollView *_pagingScrollView;
+    UIView *backgroundView;           // The false background of the false at the beginning
+    UIImageView *avatarImageView;     // The false background‘s ImageView at the beginning
     
     // Paging & layout
     NSMutableSet *_visiblePages, *_recycledPages;
@@ -48,8 +50,12 @@
     BOOL _viewIsActive; // active as in it's in the view heirarchy
     BOOL _skipNextPagingScrollViewPositioning;
     BOOL _viewHasAppearedInitially;
+    BOOL _isWindow;    // whether to adopt the Window as a background
     CGPoint _currentGridContentOffset;
 }
+
+@property (nonatomic, strong) UIWindow *overlayWindow;  // Full screen window
+
 
 // Layout
 - (void)layoutVisiblePages;
