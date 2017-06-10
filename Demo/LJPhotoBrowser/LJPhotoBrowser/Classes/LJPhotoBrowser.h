@@ -20,6 +20,8 @@
 @optional
 
 - (void)photoBrowserDidFinishModalPresentation:(LJPhotoBrowser *)photoBrowser;
+- (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser thumbPhotoAtIndex:(NSUInteger)index;
+
 
 @end
 
