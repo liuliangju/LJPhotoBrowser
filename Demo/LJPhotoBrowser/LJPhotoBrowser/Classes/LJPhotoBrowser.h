@@ -7,7 +7,38 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "LJPhoto.h"
+#import "LJPhotoProtocol.h"
 
-@interface LJPhotoBrowser : UIViewController
+
+@class LJPhotoBrowser;
+@protocol LJPhotoBrowserDelegate <NSObject>
+
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(LJPhotoBrowser *)photoBrowser;
+- (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index;
+
+@optional
+
+- (void)photoBrowserDidFinishModalPresentation:(LJPhotoBrowser *)photoBrowser;
+
+@end
+
+@interface LJPhotoBrowser : UIViewController <UIScrollViewDelegate>
+
+@property (nonatomic, weak) IBOutlet id<LJPhotoBrowserDelegate> delegate;
+
+
+// Init
+- (instancetype)initWithDelegate:(id <LJPhotoBrowserDelegate>)delegate;
+- (instancetype)initWithPhotos:(NSArray *)photosArray;
+
+
+// Reloads the photo browser and refetches data
+- (void)reloadData;
+
+// Set page that photo browser starts on
+- (void)setCurrentPhotoIndex:(NSUInteger)index;
+
+
 
 @end

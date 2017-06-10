@@ -7,12 +7,41 @@
 //
 
 #import "LJPhotoBrowser.h"
+#import "LJCommonMacro.h"
+#import "LJPhotoBrowserPrivate.h"
+
+#define PADDING                  10
+
+static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 
 @interface LJPhotoBrowser ()
 
 @end
 
 @implementation LJPhotoBrowser
+
+#pragma mark - init
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        [self p_initialisation];
+    }
+    return self;
+}
+
+- (instancetype)initWithDelegate:(id<LJPhotoBrowserDelegate>)delegate {
+    self = [self init];
+    if (self) {
+        _delegate = delegate;
+    }
+    return self;
+}
+
+- (void)p_initialisation {
+
+    
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];

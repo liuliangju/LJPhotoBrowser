@@ -58,6 +58,7 @@
 		A71DC4161EE9A0D0000DE03E /* LJTapDetectingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJTapDetectingView.m; sourceTree = "<group>"; };
 		A71DC4191EEA0C8C000DE03E /* LJZoomingScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJZoomingScrollView.h; sourceTree = "<group>"; };
 		A71DC41A1EEA0C8C000DE03E /* LJZoomingScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJZoomingScrollView.m; sourceTree = "<group>"; };
+		A71DC4631EEB6C4B000DE03E /* LJPhotoBrowserPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LJPhotoBrowserPrivate.h; sourceTree = "<group>"; };
 		A779A6091EE99B1700A5C6EF /* LJPhotoBrowser.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = LJPhotoBrowser.bundle; sourceTree = "<group>"; };
 		A779A60B1EE99B1700A5C6EF /* photo1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = photo1.jpg; sourceTree = "<group>"; };
 		A779A60C1EE99B1700A5C6EF /* photo10.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = photo10.jpg; sourceTree = "<group>"; };
@@ -236,6 +237,7 @@
 			children = (
 				A7F62DC21EDEA4D10082C324 /* LJCommonMacro.h */,
 				A7F62DD61EDEACDA0082C324 /* LJPhotoProtocol.h */,
+				A71DC4631EEB6C4B000DE03E /* LJPhotoBrowserPrivate.h */,
 				A7F62DD81EDEAFE60082C324 /* LJPhoto.h */,
 				A7F62DD91EDEAFE60082C324 /* LJPhoto.m */,
 				A7F62DDB1EDEB1330082C324 /* LJPhotoBrowser.h */,
