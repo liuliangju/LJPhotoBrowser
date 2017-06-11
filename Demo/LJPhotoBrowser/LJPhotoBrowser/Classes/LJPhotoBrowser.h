@@ -10,6 +10,13 @@
 #import "LJPhoto.h"
 #import "LJPhotoProtocol.h"
 
+// Debug Logging
+#if 0 // Set to 1 to enable debug logging
+#define LJLog(x, ...) NSLog(x, ## __VA_ARGS__);
+#else
+#define LJLog(x, ...)
+#endif
+
 
 @class LJPhotoBrowser;
 @protocol LJPhotoBrowserDelegate <NSObject>
@@ -21,16 +28,16 @@
 
 - (void)photoBrowserDidFinishModalPresentation:(LJPhotoBrowser *)photoBrowser;
 - (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser thumbPhotoAtIndex:(NSUInteger)index;
+- (void)photoBrowser:(LJPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index;
 
 
 @end
 
 @interface LJPhotoBrowser : UIViewController <UIScrollViewDelegate>
-//{
-//    BOOL _isWindow;    // whether to adopt the Window as a background
-//}
+
 
 @property (nonatomic, weak) IBOutlet id<LJPhotoBrowserDelegate> delegate;
+@property (nonatomic) BOOL zoomPhotosToFill;
 @property (nonatomic, assign) BOOL isWindow;
 // Init
 - (instancetype)initWithDelegate:(id <LJPhotoBrowserDelegate>)delegate;

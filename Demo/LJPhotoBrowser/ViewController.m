@@ -11,7 +11,7 @@
 #import "LJPhotoBrowser.h"
 #import "LJCommonMacro.h"
 
-@interface ViewController () {
+@interface ViewController ()<LJPhotoBrowserDelegate> {
     UISegmentedControl *_segmentedControl;
     NSMutableArray *_selections;
 }
@@ -185,10 +185,14 @@
     
     switch (selectedSegmentIndex) {
         case 0: { // Push
+//            LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]initWithDelegate:self];
+            browser.delegate = self;
+
             [self.navigationController pushViewController:browser animated:YES];
             break;
         }
         case 1: { // Modal
+            browser.delegate = self;
             UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
             //        nc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
             [self presentViewController:nc animated:YES completion:nil];
@@ -206,6 +210,24 @@
     // Deselect
     [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
+
+
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(LJPhotoBrowser *)photoBrowser {
+    return _photos.count;
+}
+
+- (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
+    if (index < _photos.count)
+        return [_photos objectAtIndex:index];
+    return nil;
+}
+
+//- (id <MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser thumbPhotoAtIndex:(NSUInteger)index {
+//    if (index < _thumbs.count)
+//        return [_thumbs objectAtIndex:index];
+//    return nil;
+//}
+
 
 
 #pragma mark Data 

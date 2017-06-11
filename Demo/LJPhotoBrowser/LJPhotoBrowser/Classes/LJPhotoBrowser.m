@@ -35,7 +35,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (instancetype)initWithDelegate:(id<LJPhotoBrowserDelegate>)delegate {
-    self = [super init];
+    self = [self init];
     if (self) {
         _delegate = delegate;
     }
@@ -43,7 +43,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (instancetype)initWithPhotos:(NSArray *)photosArray {
-    self = [super init];
+    self = [self init];
     if (self) {
         _fixedPhotosArray = photosArray;
     }
@@ -224,8 +224,27 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     [self.view addSubview:_pagingScrollView];
     
     [super viewDidLoad];
+    
+    // Update
+    [self reloadData];
 }
 
+- (void)performLayout {
+    // Setup
+    _performingLayout = YES;
+    NSUInteger numberOfPhotos = [self numberOfPhotos];
+    // Setup pages
+    [_visiblePages removeAllObjects];
+    [_recycledPages removeAllObjects];
+    
+    
+    
+    
+    // Content offset
+    _pagingScrollView.contentOffset = [self contentOffsetForPageAtIndex:_currentPageIndex];
+    [self tilePages];
+    _performingLayout = NO;
+}
 
 #pragma mark - Appearance
 - (void)viewWillAppear:(BOOL)animated {
@@ -238,6 +257,25 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         [self p_additionalInitialisation];
     }
 }
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    _viewIsActive = YES;
+    
+    // Autoplay if first is video
+    if (!_viewHasAppearedInitially) {
+//        if (_autoPlayOnAppear) {
+//            MWPhoto *photo = [self photoAtIndex:_currentPageIndex];
+//            if ([photo respondsToSelector:@selector(isVideo)] && photo.isVideo) {
+//                [self playVideoAtIndex:_currentPageIndex];
+//            }
+//        }
+    }
+    
+    _viewHasAppearedInitially = YES;
+    
+}
+
 
 - (void)viewWillDisappear:(BOOL)animated {
     // Super
@@ -298,20 +336,43 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (void)reloadData {
-
+    
+    // Reset
+    _photoCount = NSNotFound;
+    NSUInteger numberOfPhotos = [self numberOfPhotos];
+    [self releaseAllUnderlyingPhotos:YES];
+    [_photos removeAllObjects];
+    [_thumbPhotos removeAllObjects];
+    for (int i = 0; i < numberOfPhotos; i++) {
+        [_photos addObject:[NSNull null]];
+        [_thumbPhotos addObject:[NSNull null]];
+    }
+    // Update current page index
+    if (numberOfPhotos > 0) {
+        _currentPageIndex = MAX(0, MIN(_currentPageIndex, numberOfPhotos - 1));
+    } else {
+        _currentPageIndex = 0;
+    }
+    // Update layout
+    if ([self isViewLoaded]) {
+        while (_pagingScrollView.subviews.count) {
+            [[_pagingScrollView.subviews lastObject] removeFromSuperview];
+        }
+        [self performLayout];
+        [self.view setNeedsLayout];
+    }
 }
 
 - (NSUInteger)numberOfPhotos {
-//    if (_photoCount == NSNotFound) {
-//        if ([_delegate respondsToSelector:@selector(numberOfPhotosInPhotoBrowser:)]) {
-//            _photoCount = [_delegate numberOfPhotosInPhotoBrowser:self];
-//        } else if (_fixedPhotosArray) {
-//            _photoCount = _fixedPhotosArray.count;
-//        }
-//    }
-//    if (_photoCount == NSNotFound) _photoCount = 0;
-//    return _photoCount;
-    return 0;
+    if (_photoCount == NSNotFound) {
+        if ([_delegate respondsToSelector:@selector(numberOfPhotosInPhotoBrowser:)]) {
+            _photoCount = [_delegate numberOfPhotosInPhotoBrowser:self];
+        } else if (_fixedPhotosArray) {
+            _photoCount = _fixedPhotosArray.count;
+        }
+    }
+    if (_photoCount == NSNotFound) _photoCount = 0;
+    return _photoCount;
 }
 
 - (id<LJPhoto>)photoAtIndex:(NSUInteger)index {
@@ -358,14 +419,104 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return nil;
 }
 
+- (void)loadAdjacentPhotosIfNecessary:(id<LJPhoto>)photo {
+    LJZoomingScrollView *page = [self pageDisplayingPhoto:photo];
+    if (page) {
+        // If page is current page then initiate loading of previous and next pages
+        NSUInteger pageIndex = page.index;
+        if (_currentPageIndex == pageIndex) {
+            if (pageIndex > 0) {
+                // Preload index - 1
+                id <LJPhoto> photo = [self photoAtIndex:pageIndex-1];
+                if (![photo underlyingImage]) {
+                    [photo loadUnderlyingImageAndNotify];
+                    LJLog(@"Pre-loading image at index %lu", (unsigned long)pageIndex-1);
+                }
+            }
+            if (pageIndex < [self numberOfPhotos] - 1) {
+                // Preload index + 1
+                id <LJPhoto> photo = [self photoAtIndex:pageIndex+1];
+                if (![photo underlyingImage]) {
+                    [photo loadUnderlyingImageAndNotify];
+                    LJLog(@"Pre-loading image at index %lu", (unsigned long)pageIndex+1);
+                }
+            }
+        }
+    }
+}
+
+
 #pragma mark - LJPhoto Loading Notification
-- (void)handleMWPhotoLoadingDidEndNotification:(NSNotification *)notification {
+- (void)handleLJPhotoLoadingDidEndNotification:(NSNotification *)notification {
+    id <LJPhoto> photo = [notification object];
+    LJZoomingScrollView *page = [self pageDisplayingPhoto:photo];
+    if (page) {
+        if ([photo underlyingImage]) {
+            // Successful load
+            [page displayImage];
+            [self loadAdjacentPhotosIfNecessary:photo];
+        } else {
+            
+            // Failed to load
+            [page displayImageFailure];
+        }
+//        // Update nav
+//        [self updateNavigation];
+    }
 
     
 }
+
 #pragma mark - Paging
 
 - (void)tilePages {
+    // Calculate which pages should be visible
+    // Ignore padding as paging bounces encroach on that
+    // and lead to false page loads
+    
+    CGRect visibleBounds = _pagingScrollView.bounds;
+    NSInteger iFirstIndex = (NSInteger)floorf((CGRectGetMinX(visibleBounds)+PADDING*2) / CGRectGetWidth(visibleBounds));
+    NSInteger iLastIndex  = (NSInteger)floorf((CGRectGetMaxX(visibleBounds)-PADDING*2-1) / CGRectGetWidth(visibleBounds));
+    if (iFirstIndex < 0) iFirstIndex = 0;
+    if (iFirstIndex > ([self numberOfPhotos] - 1)) iFirstIndex = [self numberOfPhotos] - 1;
+    if (iLastIndex < 0) iLastIndex = 0;
+    if (iLastIndex > ([self numberOfPhotos] - 1)) iLastIndex = [self numberOfPhotos] - 1;
+    
+    // Recycle no longer needed pages
+    NSInteger pageIndex;
+    for (LJZoomingScrollView *page in _visiblePages) {
+        pageIndex = page.index;
+        if (pageIndex < (NSUInteger)iFirstIndex || pageIndex > (NSUInteger)iLastIndex) {
+            [_recycledPages addObject:page];
+//            [page.captionView removeFromSuperview];
+//            [page.selectedButton removeFromSuperview];
+            [page.playButton removeFromSuperview];
+            [page prepareForReuse];
+            [page removeFromSuperview];
+            LJLog(@"Removed page at index %lu", (unsigned long)pageIndex);
+        }
+    }
+    
+    [_visiblePages minusSet:_recycledPages];
+    while (_recycledPages.count > 2) // Only keep 2 recycled pages
+        [_recycledPages removeObject:[_recycledPages anyObject]];
+    
+    for (NSUInteger index = (NSUInteger)iFirstIndex; index <= (NSUInteger)iLastIndex; index++) {
+        if (![self isDisplayingPageForIndex:index]) {
+        
+            // Add new page
+            LJZoomingScrollView *page = [self dequeueRecycledPage];
+            if (!page) {
+                page = [[LJZoomingScrollView alloc] initWithPhotoBrowser:self];
+            }
+            
+            [_visiblePages addObject:page];
+            [self configurePage:page forIndex:index];
+            
+            [_pagingScrollView addSubview:page];
+            LJLog(@"Added page at index %lu", (unsigned long)index);
+        }
+    }
 
 }
 
@@ -379,11 +530,11 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 //    }
 }
 
-//- (BOOL)isDisplayingPageForIndex:(NSUInteger)index {
-//    for (MWZoomingScrollView *page in _visiblePages)
-//        if (page.index == index) return YES;
-//    return NO;
-//}
+- (BOOL)isDisplayingPageForIndex:(NSUInteger)index {
+    for (LJZoomingScrollView *page in _visiblePages)
+        if (page.index == index) return YES;
+    return NO;
+}
 //
 //- (MWZoomingScrollView *)pageDisplayedAtIndex:(NSUInteger)index {
 //    MWZoomingScrollView *thePage = nil;
@@ -395,32 +546,86 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 //    return thePage;
 //}
 //
-//- (MWZoomingScrollView *)pageDisplayingPhoto:(id<MWPhoto>)photo {
-//    MWZoomingScrollView *thePage = nil;
-//    for (MWZoomingScrollView *page in _visiblePages) {
-//        if (page.photo == photo) {
-//            thePage = page; break;
-//        }
-//    }
-//    return thePage;
-//}
-//
-//- (void)configurePage:(MWZoomingScrollView *)page forIndex:(NSUInteger)index {
-//    page.frame = [self frameForPageAtIndex:index];
-//    page.index = index;
-//    page.photo = [self photoAtIndex:index];
-//}
+- (LJZoomingScrollView *)pageDisplayingPhoto:(id<LJPhoto>)photo {
+    LJZoomingScrollView *thePage = nil;
+    for (LJZoomingScrollView *page in _visiblePages) {
+        if (page.photo == photo) {
+            thePage = page; break;
+        }
+    }
+    return thePage;
+}
 
-//- (MWZoomingScrollView *)dequeueRecycledPage {
-//    MWZoomingScrollView *page = [_recycledPages anyObject];
-//    if (page) {
-//        [_recycledPages removeObject:page];
-//    }
-//    return page;
-//}
+- (void)configurePage:(LJZoomingScrollView *)page forIndex:(NSUInteger)index {
+    page.frame = [self frameForPageAtIndex:index];
+    page.index = index;
+    page.photo = [self photoAtIndex:index];
+}
+
+- (LJZoomingScrollView *)dequeueRecycledPage {
+    LJZoomingScrollView *page = [_recycledPages anyObject];
+    if (page) {
+        [_recycledPages removeObject:page];
+    }
+    return page;
+}
 
 // Handle page changes
 - (void)didStartViewingPageAtIndex:(NSUInteger)index {
+    
+    // Handle 0 photos
+    if (![self numberOfPhotos]) {
+        // Show controls
+//        [self setControlsHidden:NO animated:YES permanent:YES];
+        return;
+    }
+    // Handle video on page change
+    if (!_rotating && index != _currentVideoIndex) {
+//        [self clearCurrentVideo];
+    }
+    
+    // Release images further away than +/-1
+    NSUInteger i;
+    if (index > 0) {
+        // Release anything < index - 1
+        for (i = 0; i < index-1; i++) {
+            id photo = [_photos objectAtIndex:i];
+            if (photo != [NSNull null]) {
+                [photo unloadUnderlyingImage];
+                [_photos replaceObjectAtIndex:i withObject:[NSNull null]];
+                LJLog(@"Released underlying image at index %lu", (unsigned long)i);
+            }
+        }
+    }
+    if (index < [self numberOfPhotos] - 1) {
+        // Release anything > index + 1
+        for (i = index + 2; i < _photos.count; i++) {
+            id photo = [_photos objectAtIndex:i];
+            if (photo != [NSNull null]) {
+                [photo unloadUnderlyingImage];
+                [_photos replaceObjectAtIndex:i withObject:[NSNull null]];
+                LJLog(@"Released underlying image at index %lu", (unsigned long)i);
+            }
+        }
+    }
+    
+    // Load adjacent images if needed and the photo is already
+    // loaded. Also called after photo has been loaded in background
+    id <LJPhoto> currentPhoto = [self photoAtIndex:index];
+    if ([currentPhoto underlyingImage]) {
+        // photo loaded so load ajacent now
+        [self loadAdjacentPhotosIfNecessary:currentPhoto];
+    }
+    
+    // Notify delegate
+    if (index != _previousPageIndex) {
+        if ([_delegate respondsToSelector:@selector(photoBrowser:didDisplayPhotoAtIndex:)])
+            [_delegate photoBrowser:self didDisplayPhotoAtIndex:index];
+        _previousPageIndex = index;
+    }
+
+    
+
 }
 
 #pragma mark - Frame Calculations
@@ -431,17 +636,17 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return CGRectIntegral(frame);
 }
 
-//- (CGRect)frameForPageAtIndex:(NSUInteger)index {
-//    // We have to use our paging scroll view's bounds, not frame, to calculate the page placement. When the device is in
-//    // landscape orientation, the frame will still be in portrait because the pagingScrollView is the root view controller's
-//    // view, so its frame is in window coordinate space, which is never rotated. Its bounds, however, will be in landscape
-//    // because it has a rotation transform applied.
-//    CGRect bounds = _pagingScrollView.bounds;
-//    CGRect pageFrame = bounds;
-//    pageFrame.size.width -= (2 * PADDING);
-//    pageFrame.origin.x = (bounds.size.width * index) + PADDING;
-//    return CGRectIntegral(pageFrame);
-//}
+- (CGRect)frameForPageAtIndex:(NSUInteger)index {
+    // We have to use our paging scroll view's bounds, not frame, to calculate the page placement. When the device is in
+    // landscape orientation, the frame will still be in portrait because the pagingScrollView is the root view controller's
+    // view, so its frame is in window coordinate space, which is never rotated. Its bounds, however, will be in landscape
+    // because it has a rotation transform applied.
+    CGRect bounds = _pagingScrollView.bounds;
+    CGRect pageFrame = bounds;
+    pageFrame.size.width -= (2 * PADDING);
+    pageFrame.origin.x = (bounds.size.width * index) + PADDING;
+    return CGRectIntegral(pageFrame);
+}
 
 - (CGSize)contentSizeForPagingScrollView {
     // We have to use the paging scroll view's bounds to calculate the contentSize, for the same reason outlined above.
@@ -449,6 +654,32 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return CGSizeMake(bounds.size.width * [self numberOfPhotos], bounds.size.height);
 }
 
+- (CGPoint)contentOffsetForPageAtIndex:(NSUInteger)index {
+    CGFloat pageWidth = _pagingScrollView.bounds.size.width;
+    CGFloat newOffset = index * pageWidth;
+    return CGPointMake(newOffset, 0);
+}
+
+
+#pragma mark - UIScrollView Delegate
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    // Checks
+    if (!_viewIsActive || _performingLayout || _rotating) return;
+    // Tile pages
+    [self tilePages];
+    
+    // Calculate current page
+    CGRect visibleBounds = _pagingScrollView.bounds;
+    NSInteger index = (NSInteger)(floorf(CGRectGetMidX(visibleBounds) / CGRectGetWidth(visibleBounds)));
+    if (index < 0) index = 0;
+    if (index > [self numberOfPhotos] - 1) index = [self numberOfPhotos] - 1;
+    NSUInteger previousCurrentPage = _currentPageIndex;
+    _currentPageIndex = index;
+    if (_currentPageIndex != previousCurrentPage) {
+        [self didStartViewingPageAtIndex:index];
+    }
+    
+}
 
 - (UIWindow *)overlayWindow {
     if (!_overlayWindow) {
