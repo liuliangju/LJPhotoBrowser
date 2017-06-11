@@ -46,7 +46,7 @@
         // Image view
         _photoImageView = [[LJTapDetectingImageView alloc] initWithFrame:CGRectZero];
         _photoImageView.tapDelegate = self;
-        _photoImageView.contentMode = UIViewContentModeCenter;
+        _photoImageView.contentMode = UIViewContentModeScaleAspectFill;
         _photoImageView.backgroundColor = [UIColor blackColor];
         [self addSubview:_photoImageView];
         
@@ -94,11 +94,6 @@
     _index = NSUIntegerMax;
 }
 
-- (BOOL)displayingVideo {
-    return [_photo respondsToSelector:@selector(isVideo)] && _photo.isVideo;
-}
-
-
 #pragma mark - Image
 - (void)setPhoto:(id<LJPhoto>)photo {
     // Cancel any loading on old photo
@@ -140,32 +135,28 @@
                 UIImage *img = (UIImage *)tmpImage;
                 // Set image
                 _photoImageView.image = img;
-                
                 // Setup photo frame
-                CGRect photoImageViewFrame;
-                photoImageViewFrame.origin = CGPointZero;
-                photoImageViewFrame.size = img.size;
-                _photoImageView.frame = photoImageViewFrame;
+                CGRect photoImageViewFrame = [LJBrowserHelper calcToFrame:_photo];;
+                _photoImageView.frame = photoImageViewFrame;//[LJBrowserHelper calcToFrame:_photo];
                 self.contentSize = photoImageViewFrame.size;
                 
                 // Set zoom to minimum zoom
-                [self setMaxMinZoomScalesForCurrentBounds];   
+//                [self setMaxMinZoomScalesForCurrentBounds];   
             } else {
-                _photoImageView.backgroundColor = [UIColor whiteColor];
+//                _photoImageView.backgroundColor = [UIColor whiteColor];
+                _photoImageView.contentMode = UIViewContentModeCenter;
                 FLAnimatedImage *img = (FLAnimatedImage *)tmpImage;
                 _photoImageView.animatedImage = img;
+                _photoImageView.frame = kLJPhotoBrowserScreenBounds;//[LJBrowserHelper calcToFrame:_photo];
+                self.contentSize = kLJPhotoBrowserScreenBounds.size;
 
-                // Setup photo frame
-                CGRect photoImageViewFrame = kLJPhotoBrowserScreenBounds;
-//                photoImageViewFrame.origin = CGPointZero;
-//                photoImageViewFrame.size = img.size;
-                _photoImageView.frame = photoImageViewFrame;
-                self.contentSize = photoImageViewFrame.size;
             }
-            
             _photoImageView.hidden = NO;
+
         }
+        
         [self setNeedsLayout];
+
     }
     
 }
@@ -214,6 +205,7 @@
     }
     return zoomScale;
 }
+
 
 - (void)setMaxMinZoomScalesForCurrentBounds {
     
@@ -269,10 +261,10 @@
     self.scrollEnabled = NO;
     
     // If it's a video then disable zooming
-    if ([self displayingVideo]) {
-        self.maximumZoomScale = self.zoomScale;
-        self.minimumZoomScale = self.zoomScale;
-    }
+//    if ([self displayingVideo]) {
+//        self.maximumZoomScale = self.zoomScale;
+//        self.minimumZoomScale = self.zoomScale;
+//    }
     
     // Layout
     [self setNeedsLayout];
