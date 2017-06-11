@@ -23,6 +23,8 @@
 //@property (nonatomic, strong) UIImage *placeHolder;
 @property (nonatomic, copy) NSURL *photoURL;
 @property (nonatomic, copy) NSString *filePath;
+@property (nonatomic, strong) PHAsset *asset;
+
 
 - (void)imageLoadingComplete;
 
@@ -38,12 +40,27 @@
 + (LJPhoto *)photoWithImage:(UIImage *)image {
     return [[LJPhoto alloc] initWithImage:image];
 }
+
 + (LJPhoto *)photoWithData:(NSData *)gifImage {
     return [[LJPhoto alloc] initWithImage:gifImage];
 }
 
++ (LJPhoto *)photoWithURL:(NSURL *)url {
+    return [[LJPhoto alloc] initWithURL:url];
+}
+
+
 
 #pragma mark - Init
+
+- (id)init {
+    if ((self = [super init])) {
+        self.emptyImage = YES;
+        [self setup];
+    }
+    return self;
+}
+
 - (id)initWithImage:(id)image {
     if ((self = [super init])) {
         if ([image isKindOfClass:[UIImage class]]) {
@@ -52,6 +69,24 @@
             self.image = [FLAnimatedImage animatedImageWithGIFData:image];
         }
         
+        [self setup];
+    }
+    return self;
+}
+
+- (id)initWithURL:(NSURL *)url {
+    if ((self = [super init])) {
+        self.photoURL = url;
+        [self setup];
+    }
+    return self;
+}
+
+- (id)initWithVideoURL:(NSURL *)url {
+    if ((self = [super init])) {
+        self.videoURL = url;
+        self.isVideo = YES;
+        self.emptyImage = YES;
         [self setup];
     }
     return self;
@@ -67,6 +102,34 @@
 }
 
 #pragma mark - Video
+
+- (void)setVideoURL:(NSURL *)videoURL {
+    _videoURL = videoURL;
+    self.isVideo = YES;
+}
+
+- (void)getVideoURL:(void (^)(NSURL *url))completion {
+    if (_videoURL) {
+        completion(_videoURL);
+    } else if (_asset && _asset.mediaType == PHAssetMediaTypeVideo) {
+        [self cancelVideoRequest]; // Cancel any existing
+        PHVideoRequestOptions *options = [PHVideoRequestOptions new];
+        options.networkAccessAllowed = YES;
+        typeof(self) __weak weakSelf = self;
+        _assetVideoRequestID = [[PHImageManager defaultManager] requestAVAssetForVideo:_asset options:options resultHandler:^(AVAsset *asset, AVAudioMix *audioMix, NSDictionary *info) {
+            
+            // dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{ // Testing
+            typeof(self) strongSelf = weakSelf;
+            if (!strongSelf) return;
+            strongSelf->_assetVideoRequestID = PHInvalidImageRequestID;
+            if ([asset isKindOfClass:[AVURLAsset class]]) {
+                completion(((AVURLAsset *)asset).URL);
+            } else {
+                completion(nil);
+            }
+        }];
+    }
+}
 
 
 #pragma mark - MWPhoto Protocol Methods

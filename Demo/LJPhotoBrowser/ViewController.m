@@ -166,8 +166,10 @@
             [photos addObject:photo];
             photo = [LJPhoto photoWithData:[NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"photo11" ofType:@"gif"]]];
             [photos addObject:photo];
-//            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo2" ofType:@"jpg"]]];
-//            [photos addObject:photo];
+            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video_thumb" ofType:@"jpg"]]];
+            photo.videoURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video" ofType:@"mp4"]];
+            [photos addObject:photo];
+            
 //            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo3" ofType:@"jpg"]]];
 //            [photos addObject:photo];
             break;

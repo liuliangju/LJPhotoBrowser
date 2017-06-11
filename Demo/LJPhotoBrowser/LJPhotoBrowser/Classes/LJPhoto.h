@@ -30,9 +30,9 @@
 + (LJPhoto *)photoWithURL:(NSURL *)url;
 
 
-- (instancetype)initWithImage:(id)image;
-- (instancetype)initWithURL:(NSURL *)url;
-- (instancetype)initWithFilePath:(NSString *)path;
+- (id)initWithImage:(id)image;
+- (id)initWithURL:(NSURL *)url;
+- (id)initWithFilePath:(NSString *)path;
 
 
 @end
