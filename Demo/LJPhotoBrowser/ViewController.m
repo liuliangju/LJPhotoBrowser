@@ -174,13 +174,10 @@
         }
     }
     
-
-
-    
     self.photos = photos;
 
     LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]init];
-//    browser.delegate = self;
+    browser.delegate = self;
 
     
     NSInteger selectedSegmentIndex = _segmentedControl.selectedSegmentIndex;
@@ -201,7 +198,7 @@
         }
         default: { // Transition
             browser.isWindow = YES;
-            UITableViewCell *currentCell = [self.tableView cellForRowAtIndexPath:indexPath];
+
             [browser showPhotoBrowserWithFirstPhoto:self.photos[0]];
             
             break;

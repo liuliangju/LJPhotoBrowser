@@ -63,24 +63,18 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             _pagingScrollView.alpha = 1;
             _avatarImageView.frame = toFrame;
         } completion:^(BOOL finished) {
-            
             _avatarImageView.hidden = YES;
             _backgroundView.hidden = YES;
             [self reloadData];
         }];
-    } else {
+    } else {  // if firstPhoto image is nil download the images
         _avatarImageView.hidden = YES;
         _backgroundView.hidden = YES;
         [self reloadData];
-
-        // photo.image 不存在直接下载图片
     }
 }
 
 - (void)p_initialisation {
-//    if (!_isWindow) {
-//        self.hidesBottomBarWhenPushed = YES;
-//    }
     _photoCount = NSNotFound;
     _currentPageIndex = 0;
     _previousPageIndex = NSUIntegerMax;
