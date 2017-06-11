@@ -12,6 +12,7 @@
 #import <MBProgressHUD/MBProgressHUD.h>
 #import <MediaPlayer/MediaPlayer.h>
 #import "LJZoomingScrollView.h"
+#import "LJBrowserHelper.h"
 
 @interface LJPhotoBrowser () {
     

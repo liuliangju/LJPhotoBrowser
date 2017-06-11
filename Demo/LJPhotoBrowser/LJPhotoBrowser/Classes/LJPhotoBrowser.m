@@ -54,68 +54,27 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     if (photo.image) {
         self.overlayWindow.hidden = NO;
         _avatarImageView.image = photo.image;
-        CGRect fromFrame = [self calcPhotoFrame:photo];
-        CGRect toFrame = [self calcToFrame:photo];
+        CGRect fromFrame = [LJBrowserHelper calcfromFrame:photo];
+        CGRect toFrame = [LJBrowserHelper calcToFrame:photo];
         _avatarImageView.frame = fromFrame;
         
         [UIView animateWithDuration:0.9 animations:^{
             _backgroundView.alpha = 1;
+            _pagingScrollView.alpha = 1;
             _avatarImageView.frame = toFrame;
         } completion:^(BOOL finished) {
-            //动画有问题 需要调整
-            //        if ([self isVerticallLargerPhoto]) {
-            //            self.avatarImageView.frame = [self verticallLargerImageViewFrame];
-            //        }
-            // 动画执行完了之后隐藏替身
-            //        _avatarImageView.hidden = YES;
             
+            _avatarImageView.hidden = YES;
+            _backgroundView.hidden = YES;
+            [self reloadData];
         }];
     } else {
-        
+        _avatarImageView.hidden = YES;
+        _backgroundView.hidden = YES;
+        [self reloadData];
+
         // photo.image 不存在直接下载图片
     }
-}
-
-// frame转换
-- (CGRect)calcPhotoFrame:(LJPhoto *)photo {
-    CGRect photoFrame = photo.imageFrame;
-    if (CGRectEqualToRect(photoFrame, CGRectZero)) {
-        return CGRectZero;
-    }
-    CGRect fromFrame = CGRectMake(photoFrame.origin.x, photoFrame.origin.y, photoFrame.size.width, photoFrame.size.height);
-    return fromFrame;
-}
-
-- (CGRect)calcToFrame:(LJPhoto *)photo {
-    CGRect toFrame = CGRectZero;
-    CGFloat width = screenWidth;
-    CGFloat height = screenHeight;
-    UIImage *image = photo.image;
-    CGFloat imageWid;
-    CGFloat imageHei;
-    if (image) {
-        imageWid = image.size.width;
-        imageHei = image.size.height;
-    } else {
-        imageWid = screenWidth;
-        imageHei = screenHeight;
-    }
-    
-    // 宽度固定为屏幕宽
-    toFrame.size.width = width;
-    toFrame.size.height = width * imageHei / imageWid;
-    toFrame.origin.x = 0;
-    toFrame.origin.y = (height - toFrame.size.height) / 2;
-    
-    // 如果缩放后的高度仍超过屏幕高则高度固定为屏幕高
-    if (toFrame.size.height > height) {
-        toFrame.size.height = height;
-        toFrame.size.width = height * imageWid / imageHei;
-        toFrame.origin.y = 0;
-        toFrame.origin.x = (width - toFrame.size.width) / 2;
-    }
-    
-    return toFrame;
 }
 
 - (void)p_initialisation {
@@ -126,7 +85,9 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _currentPageIndex = 0;
     _previousPageIndex = NSUIntegerMax;
     _currentVideoIndex = NSUIntegerMax;
+    _previousLayoutBounds = CGRectZero;
     _performingLayout = NO; // Reset on view did appear
+    _zoomPhotosToFill = YES;
     _rotating = NO;
     _viewIsActive = NO;
     _visiblePages = [[NSMutableSet alloc] init];
@@ -223,10 +184,10 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _pagingScrollView.contentSize = [self contentSizeForPagingScrollView];
     [self.view addSubview:_pagingScrollView];
     
-    [super viewDidLoad];
-    
     // Update
-    [self reloadData];
+    if (!_isWindow) [self reloadData];
+    
+    [super viewDidLoad];
 }
 
 - (void)performLayout {
@@ -246,6 +207,20 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _performingLayout = NO;
 }
 
+// Release any retained subviews of the main view.
+- (void)viewDidUnload {
+    _currentPageIndex = 0;
+    _pagingScrollView = nil;
+    _visiblePages = nil;
+    _recycledPages = nil;
+//    _toolbar = nil;
+//    _previousButton = nil;
+//    _nextButton = nil;
+    _progressHUD = nil;
+    [super viewDidUnload];
+}
+
+
 #pragma mark - Appearance
 - (void)viewWillAppear:(BOOL)animated {
     // Super
@@ -256,6 +231,9 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     } else {
         [self p_additionalInitialisation];
     }
+    
+    // Layout
+    [self.view setNeedsLayout];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -288,10 +266,61 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 #pragma mark - Layout
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
-//    [self layoutVisiblePages];
+    [self layoutVisiblePages];
 }
 
 - (void)layoutVisiblePages {
+    // Flag
+    _performingLayout = YES;
+    
+    // Remember index
+    NSUInteger indexPriorToLayout = _currentPageIndex;
+    
+    // Get paging scroll view frame to determine if anything needs changing
+    CGRect pagingScrollViewFrame = [self frameForPagingScrollView];
+    
+    // Frame needs changing
+    if (!_skipNextPagingScrollViewPositioning) {
+        _pagingScrollView.frame = pagingScrollViewFrame;
+    }
+    _skipNextPagingScrollViewPositioning = NO;
+    
+    // Recalculate contentSize based on current orientation
+    _pagingScrollView.contentSize = [self contentSizeForPagingScrollView];
+    
+    // Adjust frames and configuration of each visible page
+    for (LJZoomingScrollView *page in _visiblePages) {
+        NSUInteger index = page.index;
+        page.frame = [self frameForPageAtIndex:index];
+//        if (page.captionView) {
+//            page.captionView.frame = [self frameForCaptionView:page.captionView atIndex:index];
+//        }
+//        if (page.selectedButton) {
+//            page.selectedButton.frame = [self frameForSelectedButton:page.selectedButton atIndex:index];
+//        }
+//        if (page.playButton) {
+//            page.playButton.frame = [self frameForPlayButton:page.playButton atIndex:index];
+//        }
+        
+        // Adjust scales if bounds has changed since last time
+        if (!CGRectEqualToRect(_previousLayoutBounds, self.view.bounds)) {
+            // Update zooms for new bounds
+            [page setMaxMinZoomScalesForCurrentBounds];
+            _previousLayoutBounds = self.view.bounds;
+        }
+        
+    }
+    
+    // Adjust video loading indicator if it's visible
+//    [self positionVideoLoadingIndicator];
+    
+    // Adjust contentOffset to preserve page location based on values collected prior to location
+    _pagingScrollView.contentOffset = [self contentOffsetForPageAtIndex:indexPriorToLayout];
+    [self didStartViewingPageAtIndex:_currentPageIndex]; // initial
+    
+    // Reset
+    _currentPageIndex = indexPriorToLayout;
+    _performingLayout = NO;
 
 }
 
@@ -478,9 +507,10 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     NSInteger iFirstIndex = (NSInteger)floorf((CGRectGetMinX(visibleBounds)+PADDING*2) / CGRectGetWidth(visibleBounds));
     NSInteger iLastIndex  = (NSInteger)floorf((CGRectGetMaxX(visibleBounds)-PADDING*2-1) / CGRectGetWidth(visibleBounds));
     if (iFirstIndex < 0) iFirstIndex = 0;
-    if (iFirstIndex > ([self numberOfPhotos] - 1)) iFirstIndex = [self numberOfPhotos] - 1;
+    if (iFirstIndex > [self numberOfPhotos] - 1) iFirstIndex = [self numberOfPhotos] - 1;
     if (iLastIndex < 0) iLastIndex = 0;
-    if (iLastIndex > ([self numberOfPhotos] - 1)) iLastIndex = [self numberOfPhotos] - 1;
+    if (iLastIndex > [self numberOfPhotos] - 1) iLastIndex = [self numberOfPhotos] - 1;
+
     
     // Recycle no longer needed pages
     NSInteger pageIndex;

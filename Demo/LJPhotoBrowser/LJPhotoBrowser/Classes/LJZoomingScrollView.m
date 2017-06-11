@@ -151,7 +151,7 @@
                 // Set zoom to minimum zoom
                 [self setMaxMinZoomScalesForCurrentBounds];   
             } else {
-//                _photoImageView.backgroundColor = [UIColor whiteColor];
+                _photoImageView.backgroundColor = [UIColor whiteColor];
                 FLAnimatedImage *img = (FLAnimatedImage *)tmpImage;
                 _photoImageView.animatedImage = img;
 
@@ -163,9 +163,9 @@
                 self.contentSize = photoImageViewFrame.size;
             }
             
-//            _photoImageView.image = img;
             _photoImageView.hidden = NO;
         }
+        [self setNeedsLayout];
     }
     
 }

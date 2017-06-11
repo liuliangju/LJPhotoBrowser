@@ -160,7 +160,7 @@
             break;
         case 1: {
             // Local Photos and Videos
-            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo5" ofType:@"jpg"]]];
+            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo1" ofType:@"jpg"]]];
             CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
             photo.imageFrame = rectInTableView;
             [photos addObject:photo];
@@ -180,19 +180,20 @@
     self.photos = photos;
 
     LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]init];
+//    browser.delegate = self;
+
     
     NSInteger selectedSegmentIndex = _segmentedControl.selectedSegmentIndex;
     
     switch (selectedSegmentIndex) {
         case 0: { // Push
-//            LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]initWithDelegate:self];
-            browser.delegate = self;
+            LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]initWithDelegate:self];
 
+            
             [self.navigationController pushViewController:browser animated:YES];
             break;
         }
         case 1: { // Modal
-            browser.delegate = self;
             UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
             //        nc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
             [self presentViewController:nc animated:YES completion:nil];

@@ -10,6 +10,8 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "FLAnimatedImage.h"
+#import "LJBrowserHelper.h"
+
 @interface LJPhoto () {
     BOOL _loadingInProgress;
     id <SDWebImageOperation> _webImageOperation;
