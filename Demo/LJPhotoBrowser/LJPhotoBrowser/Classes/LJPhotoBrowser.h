@@ -11,7 +11,7 @@
 #import "LJPhotoProtocol.h"
 
 // Debug Logging
-#if 0 // Set to 1 to enable debug logging
+#if 1 // Set to 1 to enable debug logging
 #define LJLog(x, ...) NSLog(x, ## __VA_ARGS__);
 #else
 #define LJLog(x, ...)

@@ -502,6 +502,9 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         }
 //        // Update nav
 //        [self updateNavigation];
+        
+        LJPhoto *photo = [self photoAtIndex:_currentPageIndex];
+
     }
 
     
@@ -513,7 +516,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     // Calculate which pages should be visible
     // Ignore padding as paging bounces encroach on that
     // and lead to false page loads
-    
     CGRect visibleBounds = _pagingScrollView.bounds;
     NSInteger iFirstIndex = (NSInteger)floorf((CGRectGetMinX(visibleBounds)+PADDING*2) / CGRectGetWidth(visibleBounds));
     NSInteger iLastIndex  = (NSInteger)floorf((CGRectGetMaxX(visibleBounds)-PADDING*2-1) / CGRectGetWidth(visibleBounds));
@@ -521,7 +523,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     if (iFirstIndex > [self numberOfPhotos] - 1) iFirstIndex = [self numberOfPhotos] - 1;
     if (iLastIndex < 0) iLastIndex = 0;
     if (iLastIndex > [self numberOfPhotos] - 1) iLastIndex = [self numberOfPhotos] - 1;
-
+    
     
     // Recycle no longer needed pages
     NSInteger pageIndex;
@@ -749,6 +751,19 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 #pragma mark - Navigation
+- (void)jumpToPageAtIndex:(NSUInteger)index animated:(BOOL)animated {
+    
+    // Change page
+    if (index < [self numberOfPhotos]) {
+        CGRect pageFrame = [self frameForPageAtIndex:index];
+        [_pagingScrollView setContentOffset:CGPointMake(pageFrame.origin.x - PADDING, 0) animated:animated];
+//        [self updateNavigation];
+    }
+    
+//    // Update timer to give more time
+//    [self hideControlsAfterDelay];
+    
+}
 
 
 #pragma mark - Interactions
@@ -904,7 +919,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     }
     _currentPageIndex = index;
     if ([self isViewLoaded]) {
-//        [self jumpToPageAtIndex:index animated:NO];
+        [self jumpToPageAtIndex:index animated:NO];
         if (!_viewIsActive)
             [self tilePages]; // Force tiling if view is not visible
     }

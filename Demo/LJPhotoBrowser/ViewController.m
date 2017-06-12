@@ -164,7 +164,13 @@
             CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
             photo.imageFrame = rectInTableView;
             [photos addObject:photo];
-            photo = [LJPhoto photoWithData:[NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"photo11" ofType:@"gif"]]];
+            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo5" ofType:@"jpg"]]];
+            [photos addObject:photo];
+//            photo = [LJPhoto photoWithData:[NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"photo11" ofType:@"gif"]]];
+            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"gif"]]];
+
+            [photos addObject:photo];
+            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo6" ofType:@"jpg"]]];
             [photos addObject:photo];
             photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video_thumb" ofType:@"jpg"]]];
             photo.videoURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video" ofType:@"mp4"]];
@@ -178,8 +184,7 @@
     
     self.photos = photos;
 
-    LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]init];
-    browser.delegate = self;
+
 
     
     NSInteger selectedSegmentIndex = _segmentedControl.selectedSegmentIndex;
@@ -187,18 +192,20 @@
     switch (selectedSegmentIndex) {
         case 0: { // Push
             LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]initWithDelegate:self];
-
-            
             [self.navigationController pushViewController:browser animated:YES];
             break;
         }
         case 1: { // Modal
+            LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]init];
+            browser.delegate = self;
             UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
             //        nc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
             [self presentViewController:nc animated:YES completion:nil];
             break;
         }
         default: { // Transition
+            LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]init];
+            browser.delegate = self;
             browser.isWindow = YES;
 
             [browser showPhotoBrowserWithFirstPhoto:self.photos[0]];
@@ -213,12 +220,19 @@
 
 
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(LJPhotoBrowser *)photoBrowser {
-    return _photos.count;
+    return self.photos.count;
 }
 
 - (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
-    if (index < _photos.count)
-        return [_photos objectAtIndex:index];
+    
+    for (int i = 0; i < self.photos.count; i++) {
+        LJPhoto *photo = self.photos[i];
+        NSLog(@"photo=====%@===%d", photo,i);
+    }
+    
+    
+    if (index < self.photos.count)
+        return [self.photos objectAtIndex:index];
     return nil;
 }
 

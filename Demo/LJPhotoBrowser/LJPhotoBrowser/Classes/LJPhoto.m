@@ -35,7 +35,7 @@
 
 @implementation LJPhoto
 
-@synthesize underlyingImage = _underlyingImage; // synth property from protocol
+//@synthesize underlyingImage = _underlyingImage; // synth property from protocol
 
 
 #pragma mark - Class Methods
@@ -69,7 +69,6 @@
         } else {
             self.image = [FLAnimatedImage animatedImageWithGIFData:image];
         }
-        
         [self setup];
     }
     return self;
