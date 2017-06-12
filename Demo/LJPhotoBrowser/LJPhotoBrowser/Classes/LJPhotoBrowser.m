@@ -670,7 +670,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     
     // Load adjacent images if needed and the photo is already
     // loaded. Also called after photo has been loaded in background
-    id <LJPhoto> currentPhoto = [self photoAtIndex:index];
+    LJPhoto *currentPhoto = [self photoAtIndex:index];
     if ([currentPhoto underlyingImage]) {
         // photo loaded so load ajacent now
         [self loadAdjacentPhotosIfNecessary:currentPhoto];
