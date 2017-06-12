@@ -17,8 +17,8 @@
 #define LJLog(x, ...)
 #endif
 
-
 @class LJPhotoBrowser;
+
 @protocol LJPhotoBrowserDelegate <NSObject>
 
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(LJPhotoBrowser *)photoBrowser;
@@ -38,6 +38,10 @@
 @property (nonatomic, weak) IBOutlet id<LJPhotoBrowserDelegate> delegate;
 @property (nonatomic) BOOL zoomPhotosToFill;
 @property (nonatomic, assign) BOOL isWindow;
+@property (nonatomic) NSUInteger delayToHideElements;
+@property (nonatomic, assign) double animationTime; // if use full screen window the animation time
+
+
 // Init
 - (instancetype)initWithDelegate:(id <LJPhotoBrowserDelegate>)delegate;
 - (instancetype)initWithPhotos:(NSArray *)photosArray;

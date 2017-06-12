@@ -14,6 +14,7 @@
     self = [super initWithFrame:frame];
     if (self) {
         self.userInteractionEnabled = YES;
+        [self addTapGestureRecognizer];
     }
     return self;
 }
@@ -22,7 +23,6 @@
     self = [super initWithImage:image];
     if (self) {
         self.userInteractionEnabled = YES;
-        [self addTapGestureRecognizer];
     }
     return self;
 }

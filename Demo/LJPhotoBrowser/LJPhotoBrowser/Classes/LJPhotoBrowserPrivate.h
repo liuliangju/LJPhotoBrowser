@@ -84,7 +84,8 @@
 - (void)cancelControlHiding;
 - (void)hideControlsAfterDelay;
 - (void)setControlsHidden:(BOOL)hidden animated:(BOOL)animated permanent:(BOOL)permanent;
-- (void)toggleControls;
+- (void)toggleControls:(LJPhoto *)photo;
+
 - (BOOL)areControlsHidden;
 
 // Data

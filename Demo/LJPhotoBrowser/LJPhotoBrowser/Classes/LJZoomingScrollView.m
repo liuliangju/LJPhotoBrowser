@@ -362,16 +362,16 @@
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-//    [_photoBrowser cancelControlHiding];
+    [_photoBrowser cancelControlHiding];
 }
 
 - (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view {
     self.scrollEnabled = YES; // reset
-//    [_photoBrowser cancelControlHiding];
+    [_photoBrowser cancelControlHiding];
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-//    [_photoBrowser hideControlsAfterDelay];
+    [_photoBrowser hideControlsAfterDelay];
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
@@ -380,6 +380,81 @@
 }
 
 #pragma mark - Tap Detection
+
+- (void)handleSingleTap:(UITapGestureRecognizer *)tap {
+    [_photoBrowser performSelector:@selector(toggleControls:) withObject:_photo afterDelay:0.2];
+}
+
+- (void)handleDoubleTap:(CGPoint)touchPoint {
+    
+    // Dont double tap to zoom if showing a video
+    if ([self displayingVideo]) {
+        return;
+    }
+    
+    // Cancel any single tap handling
+    [NSObject cancelPreviousPerformRequestsWithTarget:_photoBrowser];
+    
+    // Zoom
+    if (self.zoomScale != self.minimumZoomScale && self.zoomScale != [self initialZoomScaleWithMinScale]) {
+        
+        // Zoom out
+        [self setZoomScale:self.minimumZoomScale animated:YES];
+        
+    } else {
+        
+        // Zoom in to twice the size
+        CGFloat newZoomScale = ((self.maximumZoomScale + self.minimumZoomScale) / 2);
+        CGFloat xsize = self.bounds.size.width / newZoomScale;
+        CGFloat ysize = self.bounds.size.height / newZoomScale;
+        [self zoomToRect:CGRectMake(touchPoint.x - xsize/2, touchPoint.y - ysize/2, xsize, ysize) animated:YES];
+        
+    }
+    
+    // Delay controls
+    [_photoBrowser hideControlsAfterDelay];
+    
+}
+
+
+// Image View
+- (void)imageView:(FLAnimatedImageView *)imageView singleTapDetected:(UITapGestureRecognizer *)tap {
+    [self handleSingleTap:tap];
+
+}
+
+- (void)imageView:(FLAnimatedImageView *)imageView doubleTapDetected:(UITapGestureRecognizer *)tap {
+//    [self handleSingleTap:tap];
+}
+
+- (void)imageView:(FLAnimatedImageView *)imageView LongTapDetected:(UILongPressGestureRecognizer *)tap {
+
+    
+}
+
+
+
+//// Background View
+//- (void)view:(UIView *)view singleTapDetected:(UITouch *)touch {
+//    // Translate touch location to image view location
+//    CGFloat touchX = [touch locationInView:view].x;
+//    CGFloat touchY = [touch locationInView:view].y;
+//    touchX *= 1/self.zoomScale;
+//    touchY *= 1/self.zoomScale;
+//    touchX += self.contentOffset.x;
+//    touchY += self.contentOffset.y;
+//    [self handleSingleTap:CGPointMake(touchX, touchY)];
+//}
+//- (void)view:(UIView *)view doubleTapDetected:(UITouch *)touch {
+//    // Translate touch location to image view location
+//    CGFloat touchX = [touch locationInView:view].x;
+//    CGFloat touchY = [touch locationInView:view].y;
+//    touchX *= 1/self.zoomScale;
+//    touchY *= 1/self.zoomScale;
+//    touchX += self.contentOffset.x;
+//    touchY += self.contentOffset.y;
+//    [self handleDoubleTap:CGPointMake(touchX, touchY)];
+//}
 
 
 @end

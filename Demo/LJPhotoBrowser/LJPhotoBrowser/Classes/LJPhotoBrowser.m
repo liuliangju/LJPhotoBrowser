@@ -59,8 +59,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         CGRect fromFrame = [LJBrowserHelper calcfromFrame:photo];
         CGRect toFrame = [LJBrowserHelper calcToFrame:photo];
         _avatarImageView.frame = fromFrame;
-        
-        [UIView animateWithDuration:0.9 animations:^{
+        [UIView animateWithDuration:self.animationTime animations:^{
             _backgroundView.alpha = 1;
             _pagingScrollView.alpha = 1;
             _avatarImageView.frame = toFrame;
@@ -86,6 +85,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _zoomPhotosToFill = YES;
     _rotating = NO;
     _viewIsActive = NO;
+    _delayToHideElements = 5;
     _visiblePages = [[NSMutableSet alloc] init];
     _recycledPages = [[NSMutableSet alloc] init];
     _photos = [[NSMutableArray alloc] init];
@@ -947,6 +947,51 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 
 #pragma mark - Control Hiding / Showing
 
+- (void)cancelControlHiding {
+    // If a timer exists then cancel and release
+    if (_controlVisibilityTimer) {
+        [_controlVisibilityTimer invalidate];
+        _controlVisibilityTimer = nil;
+    }
+}
+
+// Enable/disable control visiblity timer
+- (void)hideControlsAfterDelay {
+    if (![self areControlsHidden]) {
+        [self cancelControlHiding];
+        _controlVisibilityTimer = [NSTimer scheduledTimerWithTimeInterval:self.delayToHideElements target:self selector:@selector(hideControls) userInfo:nil repeats:NO];
+    }
+}
+
+- (void)toggleControls:(LJPhoto *)photo {
+    // 强制旋转到人像模式
+    if (_isWindow) {
+        if ([UIDevice currentDevice].orientation != UIDeviceOrientationPortrait) {
+            NSNumber *value = [NSNumber numberWithInt:UIDeviceOrientationPortrait];
+            [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
+        }
+        _avatarImageView.image = photo.image;
+        _avatarImageView.frame = [LJBrowserHelper calcToFrame:photo];
+        _avatarImageView.hidden = NO;
+        _backgroundView.hidden = NO;
+        _pagingScrollView.hidden = YES;
+        [UIView animateWithDuration:self.animationTime delay:0.1 options:UIViewAnimationOptionCurveEaseIn animations:^{
+            _backgroundView.alpha = 0;
+            if (CGRectEqualToRect(photo.imageFrame, CGRectZero)) {
+                _avatarImageView.alpha = 0;
+            } else {
+                _avatarImageView.frame = [LJBrowserHelper calcfromFrame:photo];
+            }
+        } completion:^(BOOL finished) {
+            [self.overlayWindow.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)]; // 删除UIWindow里的所有子view
+            self.overlayWindow.rootViewController = nil; // 避免影响其它的UIViewController
+            [self.overlayWindow removeFromSuperview];
+            self.overlayWindow = nil;
+        }];
+    } else {
+        [self.navigationController popViewControllerAnimated:YES];
+    }
+}
 
 #pragma mark - Properties
 

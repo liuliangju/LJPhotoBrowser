@@ -209,6 +209,7 @@
             LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]init];
             browser.delegate = self;
             browser.isWindow = YES;
+            browser.animationTime = 0.3;
 
             [browser showPhotoBrowserWithFirstPhoto:self.photos[0]];
             
