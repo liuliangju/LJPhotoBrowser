@@ -29,6 +29,7 @@
 - (void)photoBrowserDidFinishModalPresentation:(LJPhotoBrowser *)photoBrowser;
 - (LJPhoto *)photoBrowser:(LJPhotoBrowser *)photoBrowser thumbPhotoAtIndex:(NSUInteger)index;
 - (void)photoBrowser:(LJPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index;
+- (NSString *)photoBrowser:(LJPhotoBrowser *)photoBrowser titleForPhotoAtIndex:(NSUInteger)index;
 
 @end
 
@@ -37,9 +38,12 @@
 
 @property (nonatomic, weak) IBOutlet id<LJPhotoBrowserDelegate> delegate;
 @property (nonatomic) BOOL zoomPhotosToFill;
-@property (nonatomic, assign) BOOL isWindow;
+@property (nonatomic) BOOL enableSwipeToDismiss;
+@property (nonatomic) BOOL autoPlayOnAppear;
+@property (nonatomic) BOOL isWindow;
 @property (nonatomic) NSUInteger delayToHideElements;
 @property (nonatomic, assign) double animationTime; // if use full screen window the animation time
+@property (nonatomic, readonly) NSUInteger currentIndex;
 
 
 // Init
@@ -54,6 +58,10 @@
 
 // Set page that photo browser starts on
 - (void)setCurrentPhotoIndex:(NSUInteger)index;
+
+// Custom
+@property (nonatomic) BOOL useDefaultBarButtons;
+
 
 
 

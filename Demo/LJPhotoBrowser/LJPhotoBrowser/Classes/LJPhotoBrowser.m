@@ -71,6 +71,8 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     } else {  // if firstPhoto image is nil download the images
         _avatarImageView.hidden = YES;
         _backgroundView.hidden = YES;
+//        [_photos removeAllObjects];
+//        [_thumbPhotos removeAllObjects];
         [self reloadData];
     }
 }
@@ -108,6 +110,9 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
                                              selector:@selector(handleLJPhotoLoadingDidEndNotification:)
                                                  name:LJPHOTO_LOADING_DID_END_NOTIFICATION
                                                object:nil];
+    
+    // Custom
+    _useDefaultBarButtons = YES;
 
 }
 
@@ -122,6 +127,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     
     self.hidesBottomBarWhenPushed = YES;
     _hasBelongedToViewController = NO;
+    _enableSwipeToDismiss = YES;
 }
 
 - (void)dealloc {
@@ -154,7 +160,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 
-
 - (void)didReceiveMemoryWarning {
     // Release any cached data, images, etc that aren't in use.
     [self releaseAllUnderlyingPhotos:YES];
@@ -162,7 +167,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     
     // Releases the view if it doesn't have a superview.
     [super didReceiveMemoryWarning];
-    
 }
 
 #pragma mark - View Loading
@@ -183,16 +187,56 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     // Update
     if (!_isWindow) [self reloadData];
     
+    // Swipe to dismiss
+    if (_enableSwipeToDismiss && !_isWindow) {
+        UISwipeGestureRecognizer *swipeGesture = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(doneButtonPressed:)];
+        swipeGesture.direction = UISwipeGestureRecognizerDirectionDown | UISwipeGestureRecognizerDirectionUp;
+        [self.view addGestureRecognizer:swipeGesture];
+    }
+    
     [super viewDidLoad];
 }
 
 - (void)performLayout {
     // Setup
     _performingLayout = YES;
-    NSUInteger numberOfPhotos = [self numberOfPhotos];
+//    NSUInteger numberOfPhotos = [self numberOfPhotos];
     // Setup pages
     [_visiblePages removeAllObjects];
     [_recycledPages removeAllObjects];
+
+    if (_useDefaultBarButtons) {
+        // Navigation buttons
+        if ([self.navigationController.viewControllers objectAtIndex:0] == self) {
+            // We're first on stack so show done button
+            _doneButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", nil) style:UIBarButtonItemStylePlain target:self action:@selector(doneButtonPressed:)];
+            // Set appearance
+            [_doneButton setBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+            [_doneButton setBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsCompact];
+            [_doneButton setBackgroundImage:nil forState:UIControlStateHighlighted barMetrics:UIBarMetricsDefault];
+            [_doneButton setBackgroundImage:nil forState:UIControlStateHighlighted barMetrics:UIBarMetricsCompact];
+            [_doneButton setTitleTextAttributes:[NSDictionary dictionary] forState:UIControlStateNormal];
+            [_doneButton setTitleTextAttributes:[NSDictionary dictionary] forState:UIControlStateHighlighted];
+            self.navigationItem.rightBarButtonItem = _doneButton;
+        } else {
+            // We're not first so show back button
+            UIViewController *previousViewController = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
+            NSString *backButtonTitle = previousViewController.navigationItem.backBarButtonItem ? previousViewController.navigationItem.backBarButtonItem.title : previousViewController.title;
+            UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithTitle:backButtonTitle style:UIBarButtonItemStylePlain target:nil action:nil];
+            // Appearance
+            [newBackButton setBackButtonBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+            [newBackButton setBackButtonBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsCompact];
+            [newBackButton setBackButtonBackgroundImage:nil forState:UIControlStateHighlighted barMetrics:UIBarMetricsDefault];
+            [newBackButton setBackButtonBackgroundImage:nil forState:UIControlStateHighlighted barMetrics:UIBarMetricsCompact];
+            [newBackButton setTitleTextAttributes:[NSDictionary dictionary] forState:UIControlStateNormal];
+            [newBackButton setTitleTextAttributes:[NSDictionary dictionary] forState:UIControlStateHighlighted];
+            _previousViewControllerBackButton = previousViewController.navigationItem.backBarButtonItem; // remember previous
+            previousViewController.navigationItem.backBarButtonItem = newBackButton;
+        }
+    }
+    
+    // Update nav
+    [self updateNavigation];
     
     // Content offset
     _pagingScrollView.contentOffset = [self contentOffsetForPageAtIndex:_currentPageIndex];
@@ -207,8 +251,8 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _visiblePages = nil;
     _recycledPages = nil;
 //    _toolbar = nil;
-//    _previousButton = nil;
-//    _nextButton = nil;
+    _previousButton = nil;
+    _nextButton = nil;
     _progressHUD = nil;
     [super viewDidUnload];
 }
@@ -242,6 +286,37 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         [self.view addSubview:_avatarImageView];
     } else {
         [self p_additionalInitialisation];
+        
+        
+        
+        // Status bar
+        if (!_viewHasAppearedInitially) {
+            _leaveStatusBarAlone = [self presentingViewControllerPrefersStatusBarHidden];
+            // Check if status bar is hidden on first appear, and if so then ignore it
+            if (CGRectEqualToRect([[UIApplication sharedApplication] statusBarFrame], CGRectZero)) {
+                _leaveStatusBarAlone = YES;
+            }
+        }
+        // Set style
+        if (!_leaveStatusBarAlone && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+            _previousStatusBarStyle = [[UIApplication sharedApplication] statusBarStyle];
+            [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:animated];
+        }
+        
+        // Navigation bar appearance
+        if (!_viewIsActive && [self.navigationController.viewControllers objectAtIndex:0] != self) {
+            [self storePreviousNavBarAppearance];
+        }
+        [self setNavBarAppearance:animated];
+        
+        // Update UI
+        [self hideControlsAfterDelay];
+    }
+    
+    // If rotation occured while we're presenting a modal
+    // and the index changed, make sure we show the right one now
+    if (_currentPageIndex != _pageIndexBeforeRotation) {
+        [self jumpToPageAtIndex:_pageIndexBeforeRotation animated:NO];
     }
     
     // Layout
@@ -251,28 +326,105 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     _viewIsActive = YES;
-    
     // Autoplay if first is video
     if (!_viewHasAppearedInitially) {
-//        if (_autoPlayOnAppear) {
-//            MWPhoto *photo = [self photoAtIndex:_currentPageIndex];
-//            if ([photo respondsToSelector:@selector(isVideo)] && photo.isVideo) {
-//                [self playVideoAtIndex:_currentPageIndex];
-//            }
-//        }
+        if (_autoPlayOnAppear) {
+            LJPhoto *photo = [self photoAtIndex:_currentPageIndex];
+            if ([photo respondsToSelector:@selector(isVideo)] && photo.isVideo) {
+                [self playVideoAtIndex:_currentPageIndex];
+            }
+        }
     }
-    
     _viewHasAppearedInitially = YES;
-    
 }
 
 
 - (void)viewWillDisappear:(BOOL)animated {
-    // Super
+
+    // Detect if rotation occurs while we're presenting a modal
+    _pageIndexBeforeRotation = _currentPageIndex;
+    
+    if (!_isWindow) {
+        // Check that we're disappearing for good
+        // self.isMovingFromParentViewController just doesn't work, ever. Or self.isBeingDismissed
+        if ((_doneButton && self.navigationController.isBeingDismissed) ||
+            ([self.navigationController.viewControllers objectAtIndex:0] != self && ![self.navigationController.viewControllers containsObject:self])) {
+            
+            // State
+            _viewIsActive = NO;
+            [self clearCurrentVideo]; // Clear current playing video
+            
+            // Bar state / appearance
+            [self restorePreviousNavBarAppearance:animated];
+            
+        }
+        
+        // Controls
+        [self.navigationController.navigationBar.layer removeAllAnimations]; // Stop all animations on nav bar
+        [NSObject cancelPreviousPerformRequestsWithTarget:self]; // Cancel any pending toggles from taps
+        [self setControlsHidden:NO animated:NO permanent:YES];
+        
+        // Status bar
+        if (!_leaveStatusBarAlone && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+            [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle animated:animated];
+        }
+    }
+    
     [super viewWillDisappear:animated];
 }
 
+- (void)willMoveToParentViewController:(UIViewController *)parent {
+    if (parent && _hasBelongedToViewController) {
+        [NSException raise:@"MWPhotoBrowser Instance Reuse" format:@"MWPhotoBrowser instances cannot be reused."];
+    }
+}
+
+- (void)didMoveToParentViewController:(UIViewController *)parent {
+    if (!parent) _hasBelongedToViewController = YES;
+}
+
 #pragma mark - Nav Bar Appearance
+- (void)setNavBarAppearance:(BOOL)animated {
+    [self.navigationController setNavigationBarHidden:NO animated:animated];
+    UINavigationBar *navBar = self.navigationController.navigationBar;
+    navBar.tintColor = [UIColor whiteColor];
+    navBar.barTintColor = nil;
+    navBar.shadowImage = nil;
+    navBar.translucent = YES;
+    navBar.barStyle = UIBarStyleBlackTranslucent;
+    [navBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
+    [navBar setBackgroundImage:nil forBarMetrics:UIBarMetricsCompact];
+}
+
+- (void)storePreviousNavBarAppearance {
+    _didSavePreviousStateOfNavBar = YES;
+    _previousNavBarBarTintColor = self.navigationController.navigationBar.barTintColor;
+    _previousNavBarTranslucent = self.navigationController.navigationBar.translucent;
+    _previousNavBarTintColor = self.navigationController.navigationBar.tintColor;
+    _previousNavBarHidden = self.navigationController.navigationBarHidden;
+    _previousNavBarStyle = self.navigationController.navigationBar.barStyle;
+    _previousNavigationBarBackgroundImageDefault = [self.navigationController.navigationBar backgroundImageForBarMetrics:UIBarMetricsDefault];
+    _previousNavigationBarBackgroundImageLandscapePhone = [self.navigationController.navigationBar backgroundImageForBarMetrics:UIBarMetricsCompact];
+}
+
+- (void)restorePreviousNavBarAppearance:(BOOL)animated {
+    if (_didSavePreviousStateOfNavBar) {
+        [self.navigationController setNavigationBarHidden:_previousNavBarHidden animated:animated];
+        UINavigationBar *navBar = self.navigationController.navigationBar;
+        navBar.tintColor = _previousNavBarTintColor;
+        navBar.translucent = _previousNavBarTranslucent;
+        navBar.barTintColor = _previousNavBarBarTintColor;
+        navBar.barStyle = _previousNavBarStyle;
+        [navBar setBackgroundImage:_previousNavigationBarBackgroundImageDefault forBarMetrics:UIBarMetricsDefault];
+        [navBar setBackgroundImage:_previousNavigationBarBackgroundImageLandscapePhone forBarMetrics:UIBarMetricsCompact];
+        // Restore back button if we need to
+        if (_previousViewControllerBackButton) {
+            UIViewController *previousViewController = [self.navigationController topViewController]; // We've disappeared so previous is now top
+            previousViewController.navigationItem.backBarButtonItem = _previousViewControllerBackButton;
+            _previousViewControllerBackButton = nil;
+        }
+    }
+}
 
 
 #pragma mark - Layout
@@ -304,12 +456,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     for (LJZoomingScrollView *page in _visiblePages) {
         NSUInteger index = page.index;
         page.frame = [self frameForPageAtIndex:index];
-//        if (page.captionView) {
-//            page.captionView.frame = [self frameForCaptionView:page.captionView atIndex:index];
-//        }
-//        if (page.selectedButton) {
-//            page.selectedButton.frame = [self frameForSelectedButton:page.selectedButton atIndex:index];
-//        }
         if (page.playButton) {
             page.playButton.frame = [self frameForPlayButton:page.playButton atIndex:index];
         }
@@ -348,17 +494,24 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     // Remember page index before rotation
     _pageIndexBeforeRotation = _currentPageIndex;
     _rotating = YES;
-
+    
+    // In iOS 7 the nav bar gets shown after rotation, but might as well do this for everything!
+    if (!_isWindow) {
+        if ([self areControlsHidden]) {
+            // Force hidden
+            self.navigationController.navigationBarHidden = YES;
+        }
+    }
 }
 
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
     
     // Perform layout
     _currentPageIndex = _pageIndexBeforeRotation;
-//
-//    // Delay control holding
+
+    // Delay control holding
 //    [self hideControlsAfterDelay];
-//    
+    
     // Layout
     [self layoutVisiblePages];
     
@@ -366,11 +519,13 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
     _rotating = NO;
-//    // Ensure nav bar isn't re-displayed
-//    if ([self areControlsHidden]) {
-//        self.navigationController.navigationBarHidden = NO;
-//        self.navigationController.navigationBar.alpha = 0;
-//    }
+    // Ensure nav bar isn't re-displayed
+    if (!_isWindow) {
+        if ([self areControlsHidden]) {
+            self.navigationController.navigationBarHidden = NO;
+            self.navigationController.navigationBar.alpha = 0;
+        }
+    }
 }
 
 #pragma mark - Data
@@ -384,8 +539,11 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _photoCount = NSNotFound;
     NSUInteger numberOfPhotos = [self numberOfPhotos];
     [self releaseAllUnderlyingPhotos:YES];
-    [_photos removeAllObjects];
-    [_thumbPhotos removeAllObjects];
+    
+    if (!_isWindow) {
+        [_photos removeAllObjects];
+        [_thumbPhotos removeAllObjects];
+    }
     for (int i = 0; i < numberOfPhotos; i++) {
         [_photos addObject:[NSNull null]];
         [_thumbPhotos addObject:[NSNull null]];
@@ -499,12 +657,11 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             [page displayImage];
             [self loadAdjacentPhotosIfNecessary:photo];
         } else {
-            
             // Failed to load
             [page displayImageFailure];
         }
-//        // Update nav
-//        [self updateNavigation];
+        // Update nav
+        [self updateNavigation];
     }
 }
 
@@ -630,7 +787,9 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     // Handle 0 photos
     if (![self numberOfPhotos]) {
         // Show controls
-//        [self setControlsHidden:NO animated:YES permanent:YES];
+        if (!_isWindow) {
+            [self setControlsHidden:NO animated:YES permanent:YES];
+        }
         return;
     }
     // Handle video on page change
@@ -677,6 +836,8 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             [_delegate photoBrowser:self didDisplayPhotoAtIndex:index];
         _previousPageIndex = index;
     }
+    // Update nav
+    [self updateNavigation];
 }
 
 #pragma mark - Frame Calculations
@@ -740,7 +901,9 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-//    [self hideControlsAfterDelay];
+    if (!_isWindow) {
+        [self hideControlsAfterDelay];
+    }
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
@@ -751,37 +914,24 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 #pragma mark - Navigation
 
 - (void)updateNavigation {
+    // Title
+    NSUInteger numberOfPhotos = [self numberOfPhotos];
+    if (numberOfPhotos > 1) {
+        if ([_delegate respondsToSelector:@selector(photoBrowser:titleForPhotoAtIndex:)]) {
+            self.title = [_delegate photoBrowser:self titleForPhotoAtIndex:_currentPageIndex];
+        } else {
+            self.title = [NSString stringWithFormat:@"%lu %@ %lu", (unsigned long)(_currentPageIndex+1), NSLocalizedString(@"of", @"Used in the context: 'Showing 1 of 3 items'"), (unsigned long)numberOfPhotos];
+        }
+    } else {
+        self.title = nil;
+    }
     
-//    // Title
-//    NSUInteger numberOfPhotos = [self numberOfPhotos];
-//    if (_gridController) {
-//        if (_gridController.selectionMode) {
-//            self.title = NSLocalizedString(@"Select Photos", nil);
-//        } else {
-//            NSString *photosText;
-//            if (numberOfPhotos == 1) {
-//                photosText = NSLocalizedString(@"photo", @"Used in the context: '1 photo'");
-//            } else {
-//                photosText = NSLocalizedString(@"photos", @"Used in the context: '3 photos'");
-//            }
-//            self.title = [NSString stringWithFormat:@"%lu %@", (unsigned long)numberOfPhotos, photosText];
-//        }
-//    } else if (numberOfPhotos > 1) {
-//        if ([_delegate respondsToSelector:@selector(photoBrowser:titleForPhotoAtIndex:)]) {
-//            self.title = [_delegate photoBrowser:self titleForPhotoAtIndex:_currentPageIndex];
-//        } else {
-//            self.title = [NSString stringWithFormat:@"%lu %@ %lu", (unsigned long)(_currentPageIndex+1), NSLocalizedString(@"of", @"Used in the context: 'Showing 1 of 3 items'"), (unsigned long)numberOfPhotos];
-//        }
-//    } else {
-//        self.title = nil;
-//    }
-//    
-//    // Buttons
-//    _previousButton.enabled = (_currentPageIndex > 0);
-//    _nextButton.enabled = (_currentPageIndex < numberOfPhotos - 1);
+    // Buttons
+    _previousButton.enabled = (_currentPageIndex > 0);
+    _nextButton.enabled = (_currentPageIndex < numberOfPhotos - 1);
     
     // Disable action button if there is no image or it's a video
-    LJPhoto *photo = [self photoAtIndex:_currentPageIndex];
+//    LJPhoto *photo = [self photoAtIndex:_currentPageIndex];
 //    if ([photo underlyingImage] == nil || ([photo respondsToSelector:@selector(isVideo)] && photo.isVideo)) {
 //        _actionButton.enabled = NO;
 //        _actionButton.tintColor = [UIColor clearColor]; // Tint to hide button
@@ -799,12 +949,26 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     if (index < [self numberOfPhotos]) {
         CGRect pageFrame = [self frameForPageAtIndex:index];
         [_pagingScrollView setContentOffset:CGPointMake(pageFrame.origin.x - PADDING, 0) animated:animated];
-//        [self updateNavigation];
+        [self updateNavigation];
     }
     
-//    // Update timer to give more time
-//    [self hideControlsAfterDelay];
-    
+    // Update timer to give more time
+    [self hideControlsAfterDelay];
+}
+
+- (void)gotoPreviousPage {
+    [self showPreviousPhotoAnimated:NO];
+}
+- (void)gotoNextPage {
+    [self showNextPhotoAnimated:NO];
+}
+
+- (void)showPreviousPhotoAnimated:(BOOL)animated {
+    [self jumpToPageAtIndex:_currentPageIndex-1 animated:animated];
+}
+
+- (void)showNextPhotoAnimated:(BOOL)animated {
+    [self jumpToPageAtIndex:_currentPageIndex+1 animated:animated];
 }
 
 
@@ -856,7 +1020,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
                     return;
                 }
                 if (url) {
-                    [weakSelf _playVideo:url atPhotoIndex:index];
+                    [weakSelf p_playVideo:url atPhotoIndex:index];
                 } else {
                     [weakSelf setVideoLoadingIndicatorVisible:NO atPageIndex:index];
                 }
@@ -866,7 +1030,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     }
 }
 
-- (void)_playVideo:(NSURL *)videoURL atPhotoIndex:(NSUInteger)index {
+- (void)p_playVideo:(NSURL *)videoURL atPhotoIndex:(NSUInteger)index {
     
     // Setup player
     _currentVideoPlayerViewController = [[MPMoviePlayerViewController alloc] initWithContentURL:videoURL];
@@ -946,6 +1110,58 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 
 
 #pragma mark - Control Hiding / Showing
+// If permanent then we don't set timers to hide again
+// Fades all controls on iOS 5 & 6, and iOS 7 controls slide and fade
+- (void)setControlsHidden:(BOOL)hidden animated:(BOOL)animated permanent:(BOOL)permanent {
+    
+    // Force visible
+    if (![self numberOfPhotos])
+        hidden = NO;
+    
+    // Cancel any timers
+    [self cancelControlHiding];
+    
+    // Animations & positions
+    CGFloat animatonOffset = 20;
+    CGFloat animationDuration = (animated ? 0.35 : 0);
+    
+    // Status bar
+    if (!_leaveStatusBarAlone) {
+        
+        // Hide status bar
+        if (!_isVCBasedStatusBarAppearance) {
+            
+            // Non-view controller based
+            [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:animated ? UIStatusBarAnimationSlide : UIStatusBarAnimationNone];
+            
+        } else {
+            
+            // View controller based so animate away
+            _statusBarShouldBeHidden = hidden;
+            [UIView animateWithDuration:animationDuration animations:^(void) {
+                [self setNeedsStatusBarAppearanceUpdate];
+            } completion:^(BOOL finished) {}];
+            
+        }
+        
+    }
+}
+
+- (BOOL)prefersStatusBarHidden {
+    if (!_leaveStatusBarAlone) {
+        return _statusBarShouldBeHidden;
+    } else {
+        return [self presentingViewControllerPrefersStatusBarHidden];
+    }
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    return UIStatusBarStyleLightContent;
+}
+
+- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
+    return UIStatusBarAnimationSlide;
+}
 
 - (void)cancelControlHiding {
     // If a timer exists then cancel and release
@@ -961,6 +1177,18 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         [self cancelControlHiding];
         _controlVisibilityTimer = [NSTimer scheduledTimerWithTimeInterval:self.delayToHideElements target:self selector:@selector(hideControls) userInfo:nil repeats:NO];
     }
+}
+
+- (BOOL)areControlsHidden {
+    return 0;
+}
+
+- (void)hideControls {
+    [self setControlsHidden:YES animated:YES permanent:NO];
+}
+
+- (void)showControls {
+    [self setControlsHidden:NO animated:YES permanent:NO];
 }
 
 - (void)toggleControls:(LJPhoto *)photo {
@@ -1009,6 +1237,23 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         [self jumpToPageAtIndex:index animated:NO];
         if (!_viewIsActive)
             [self tilePages]; // Force tiling if view is not visible
+    }
+}
+
+#pragma mark - Misc
+
+- (void)doneButtonPressed:(id)sender {
+    // Only if we're modal and there's a done button
+    if (_doneButton) {
+        // See if we actually just want to show/hide grid
+        
+        // Dismiss view controller
+        if ([_delegate respondsToSelector:@selector(photoBrowserDidFinishModalPresentation:)]) {
+            // Call delegate method and let them dismiss us
+            [_delegate photoBrowserDidFinishModalPresentation:self];
+        } else  {
+            [self dismissViewControllerAnimated:YES completion:nil];
+        }
     }
 }
 
