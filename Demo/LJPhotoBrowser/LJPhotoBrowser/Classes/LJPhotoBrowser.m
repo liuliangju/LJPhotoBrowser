@@ -123,37 +123,36 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (void)dealloc {
-//    [self clearCurrentVideo];
+    [self clearCurrentVideo];
     _pagingScrollView.delegate = nil;
     [[NSNotificationCenter defaultCenter]removeObserver:self];
     [self releaseAllUnderlyingPhotos:NO];
 }
 
 - (void)releaseAllUnderlyingPhotos:(BOOL)preserveCurrent {
-//    // Create a copy in case this array is modified while we are looping through
-//    // Release photos
-//    NSArray *copy = [_photos copy];
-//    for (id p in copy) {
-//        if (p != [NSNull null]) {
-//            if (preserveCurrent && p == [self photoAtIndex:self.currentIndex]) {
-//                continue; // skip current
-//            }
-//            [p unloadUnderlyingImage];
-//        }
-//    }
-//    // Release thumbs
-//    copy = [_thumbPhotos copy];
-//    for (id p in copy) {
-//        if (p != [NSNull null]) {
-//            [p unloadUnderlyingImage];
-//        }
-//    }
+    // Create a copy in case this array is modified while we are looping through
+    // Release photos
+    NSArray *copy = [_photos copy];
+    for (id p in copy) {
+        if (p != [NSNull null]) {
+            if (preserveCurrent && p == [self photoAtIndex:self.currentIndex]) {
+                continue; // skip current
+            }
+            [p unloadUnderlyingImage];
+        }
+    }
+    // Release thumbs
+    copy = [_thumbPhotos copy];
+    for (id p in copy) {
+        if (p != [NSNull null]) {
+            [p unloadUnderlyingImage];
+        }
+    }
 }
 
 
 
 - (void)didReceiveMemoryWarning {
-    
     // Release any cached data, images, etc that aren't in use.
     [self releaseAllUnderlyingPhotos:YES];
     [_recycledPages removeAllObjects];
@@ -192,9 +191,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     [_visiblePages removeAllObjects];
     [_recycledPages removeAllObjects];
     
-    
-    
-    
     // Content offset
     _pagingScrollView.contentOffset = [self contentOffsetForPageAtIndex:_currentPageIndex];
     [self tilePages];
@@ -214,8 +210,27 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     [super viewDidUnload];
 }
 
+- (BOOL)presentingViewControllerPrefersStatusBarHidden {
+    UIViewController *presenting = self.presentingViewController;
+    if (presenting) {
+        if ([presenting isKindOfClass:[UINavigationController class]]) {
+            presenting = [(UINavigationController *)presenting topViewController];
+        }
+    } else {
+        // We're in a navigation controller so get previous one!
+        if (self.navigationController && self.navigationController.viewControllers.count > 1) {
+            presenting = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
+        }
+    }
+    if (presenting) {
+        return [presenting prefersStatusBarHidden];
+    } else {
+        return NO;
+    }
+}
 
 #pragma mark - Appearance
+
 - (void)viewWillAppear:(BOOL)animated {
     // Super
     [super viewWillAppear:animated];
@@ -292,9 +307,9 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 //        if (page.selectedButton) {
 //            page.selectedButton.frame = [self frameForSelectedButton:page.selectedButton atIndex:index];
 //        }
-//        if (page.playButton) {
-//            page.playButton.frame = [self frameForPlayButton:page.playButton atIndex:index];
-//        }
+        if (page.playButton) {
+            page.playButton.frame = [self frameForPlayButton:page.playButton atIndex:index];
+        }
         
         // Adjust scales if bounds has changed since last time
         if (!CGRectEqualToRect(_previousLayoutBounds, self.view.bounds)) {
@@ -306,7 +321,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     }
     
     // Adjust video loading indicator if it's visible
-//    [self positionVideoLoadingIndicator];
+    [self positionVideoLoadingIndicator];
     
     // Adjust contentOffset to preserve page location based on values collected prior to location
     _pagingScrollView.contentOffset = [self contentOffsetForPageAtIndex:indexPriorToLayout];
@@ -315,7 +330,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     // Reset
     _currentPageIndex = indexPriorToLayout;
     _performingLayout = NO;
-
 }
 
 #pragma mark - Rotation
@@ -328,24 +342,27 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
+    // Remember page index before rotation
+    _pageIndexBeforeRotation = _currentPageIndex;
+    _rotating = YES;
 
 }
 
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
     
-//    // Perform layout
-//    _currentPageIndex = _pageIndexBeforeRotation;
-//    
+    // Perform layout
+    _currentPageIndex = _pageIndexBeforeRotation;
+//
 //    // Delay control holding
 //    [self hideControlsAfterDelay];
 //    
-//    // Layout
-//    [self layoutVisiblePages];
+    // Layout
+    [self layoutVisiblePages];
     
 }
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
-//    _rotating = NO;
+    _rotating = NO;
 //    // Ensure nav bar isn't re-displayed
 //    if ([self areControlsHidden]) {
 //        self.navigationController.navigationBarHidden = NO;
@@ -526,6 +543,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         [_recycledPages removeObject:[_recycledPages anyObject]];
     
     for (NSUInteger index = (NSUInteger)iFirstIndex; index <= (NSUInteger)iLastIndex; index++) {
+       
         if (![self isDisplayingPageForIndex:index]) {
         
             // Add new page
@@ -539,37 +557,49 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             
             [_pagingScrollView addSubview:page];
             LJLog(@"Added page at index %lu", (unsigned long)index);
+            
+            // Add play button if needed
+            if (page.displayingVideo) {
+                UIButton *playButton = [UIButton buttonWithType:UIButtonTypeCustom];
+                [playButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"PlayButtonOverlayLarge" ofType:@"png"]] forState:UIControlStateNormal];
+                [playButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"PlayButtonOverlayLargeTap" ofType:@"png"]] forState:UIControlStateHighlighted];
+
+                [playButton addTarget:self action:@selector(playButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+                [playButton sizeToFit];
+                playButton.frame = [self frameForPlayButton:playButton atIndex:index];
+                [_pagingScrollView addSubview:playButton];
+                page.playButton = playButton;
+            }
         }
     }
-
 }
 
-- (void)updateVisiblePageStates {
+//- (void)updateVisiblePageStates {
 //    NSSet *copy = [_visiblePages copy];
-//    for (MWZoomingScrollView *page in copy) {
+//    for (LJZoomingScrollView *page in copy) {
 //        
 //        // Update selection
 //        page.selectedButton.selected = [self photoIsSelectedAtIndex:page.index];
 //        
 //    }
-}
+//}
 
 - (BOOL)isDisplayingPageForIndex:(NSUInteger)index {
     for (LJZoomingScrollView *page in _visiblePages)
         if (page.index == index) return YES;
     return NO;
 }
-//
-//- (MWZoomingScrollView *)pageDisplayedAtIndex:(NSUInteger)index {
-//    MWZoomingScrollView *thePage = nil;
-//    for (MWZoomingScrollView *page in _visiblePages) {
-//        if (page.index == index) {
-//            thePage = page; break;
-//        }
-//    }
-//    return thePage;
-//}
-//
+
+- (LJZoomingScrollView *)pageDisplayedAtIndex:(NSUInteger)index {
+    LJZoomingScrollView *thePage = nil;
+    for (LJZoomingScrollView *page in _visiblePages) {
+        if (page.index == index) {
+            thePage = page; break;
+        }
+    }
+    return thePage;
+}
+
 - (LJZoomingScrollView *)pageDisplayingPhoto:(id<LJPhoto>)photo {
     LJZoomingScrollView *thePage = nil;
     for (LJZoomingScrollView *page in _visiblePages) {
@@ -605,7 +635,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     }
     // Handle video on page change
     if (!_rotating && index != _currentVideoIndex) {
-//        [self clearCurrentVideo];
+        [self clearCurrentVideo];
     }
     
     // Release images further away than +/-1
@@ -647,9 +677,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             [_delegate photoBrowser:self didDisplayPhotoAtIndex:index];
         _previousPageIndex = index;
     }
-
-    
-
 }
 
 #pragma mark - Frame Calculations
@@ -684,6 +711,14 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return CGPointMake(newOffset, 0);
 }
 
+- (CGRect)frameForPlayButton:(UIButton *)playButton atIndex:(NSUInteger)index {
+    CGRect pageFrame = [self frameForPageAtIndex:index];
+    return CGRectMake(floorf(CGRectGetMidX(pageFrame) - playButton.frame.size.width / 2),
+                      floorf(CGRectGetMidY(pageFrame) - playButton.frame.size.height / 2),
+                      playButton.frame.size.width,
+                      playButton.frame.size.height);
+}
+
 
 #pragma mark - UIScrollView Delegate
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
@@ -702,8 +737,181 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     if (_currentPageIndex != previousCurrentPage) {
         [self didStartViewingPageAtIndex:index];
     }
-    
 }
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+//    [self hideControlsAfterDelay];
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    // Update nav when page changes
+//    [self updateNavigation];
+}
+
+#pragma mark - Navigation
+
+
+#pragma mark - Interactions
+
+- (void)playButtonTapped:(id)sender {
+    // Ignore if we're already playing a video
+    if (_currentVideoIndex != NSUIntegerMax) {
+        return;
+    }
+    NSUInteger index = [self indexForPlayButton:sender];
+    if (index != NSUIntegerMax) {
+        if (!_currentVideoPlayerViewController) {
+            [self playVideoAtIndex:index];
+        }
+    }
+}
+
+- (NSUInteger)indexForPlayButton:(UIView *)playButton {
+    NSUInteger index = NSUIntegerMax;
+    for (LJZoomingScrollView *page in _visiblePages) {
+        if (page.playButton == playButton) {
+            index = page.index;
+            break;
+        }
+    }
+    return index;
+}
+
+#pragma mark - Video
+
+- (void)playVideoAtIndex:(NSUInteger)index {
+    id photo = [self photoAtIndex:index];
+    if ([photo respondsToSelector:@selector(getVideoURL:)]) {
+        
+        // Valid for playing
+        [self clearCurrentVideo];
+        _currentVideoIndex = index;
+        [self setVideoLoadingIndicatorVisible:YES atPageIndex:index];
+        
+        // Get video and play
+        typeof(self) __weak weakSelf = self;
+        [photo getVideoURL:^(NSURL *url) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                // If the video is not playing anymore then bail
+                typeof(self) strongSelf = weakSelf;
+                if (!strongSelf) return;
+                if (strongSelf->_currentVideoIndex != index || !strongSelf->_viewIsActive) {
+                    return;
+                }
+                if (url) {
+                    [weakSelf _playVideo:url atPhotoIndex:index];
+                } else {
+                    [weakSelf setVideoLoadingIndicatorVisible:NO atPageIndex:index];
+                }
+            });
+        }];
+        
+    }
+}
+
+- (void)_playVideo:(NSURL *)videoURL atPhotoIndex:(NSUInteger)index {
+    
+    // Setup player
+    _currentVideoPlayerViewController = [[MPMoviePlayerViewController alloc] initWithContentURL:videoURL];
+    [_currentVideoPlayerViewController.moviePlayer prepareToPlay];
+    _currentVideoPlayerViewController.moviePlayer.shouldAutoplay = YES;
+    _currentVideoPlayerViewController.moviePlayer.scalingMode = MPMovieScalingModeAspectFit;
+    _currentVideoPlayerViewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    
+    // Remove the movie player view controller from the "playback did finish" notification observers
+    // Observe ourselves so we can get it to use the crossfade transition
+    [[NSNotificationCenter defaultCenter] removeObserver:_currentVideoPlayerViewController
+                                                    name:MPMoviePlayerPlaybackDidFinishNotification
+                                                  object:_currentVideoPlayerViewController.moviePlayer];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(videoFinishedCallback:)
+                                                 name:MPMoviePlayerPlaybackDidFinishNotification
+                                               object:_currentVideoPlayerViewController.moviePlayer];
+    
+    // Show
+    [self presentViewController:_currentVideoPlayerViewController animated:YES completion:nil];
+}
+
+- (void)videoFinishedCallback:(NSNotification*)notification {
+    
+    // Remove observer
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:MPMoviePlayerPlaybackDidFinishNotification
+                                                  object:_currentVideoPlayerViewController.moviePlayer];
+    
+    // Clear up
+    [self clearCurrentVideo];
+    
+    // Dismiss
+    BOOL error = [[[notification userInfo] objectForKey:MPMoviePlayerPlaybackDidFinishReasonUserInfoKey] intValue] == MPMovieFinishReasonPlaybackError;
+    if (error) {
+        // Error occured so dismiss with a delay incase error was immediate and we need to wait to dismiss the VC
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self dismissViewControllerAnimated:YES completion:nil];
+        });
+    } else {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }
+}
+
+- (void)clearCurrentVideo {
+    [_currentVideoPlayerViewController.moviePlayer stop];
+    [_currentVideoLoadingIndicator removeFromSuperview];
+    _currentVideoPlayerViewController = nil;
+    _currentVideoLoadingIndicator = nil;
+    [[self pageDisplayedAtIndex:_currentVideoIndex] playButton].hidden = NO;
+    _currentVideoIndex = NSUIntegerMax;
+}
+
+- (void)setVideoLoadingIndicatorVisible:(BOOL)visible atPageIndex:(NSUInteger)pageIndex {
+    if (_currentVideoLoadingIndicator && !visible) {
+        [_currentVideoLoadingIndicator removeFromSuperview];
+        _currentVideoLoadingIndicator = nil;
+        [[self pageDisplayedAtIndex:pageIndex] playButton].hidden = NO;
+    } else if (!_currentVideoLoadingIndicator && visible) {
+        _currentVideoLoadingIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectZero];
+        [_currentVideoLoadingIndicator sizeToFit];
+        [_currentVideoLoadingIndicator startAnimating];
+        [_pagingScrollView addSubview:_currentVideoLoadingIndicator];
+        [self positionVideoLoadingIndicator];
+        [[self pageDisplayedAtIndex:pageIndex] playButton].hidden = YES;
+    }
+}
+
+- (void)positionVideoLoadingIndicator {
+    if (_currentVideoLoadingIndicator && _currentVideoIndex != NSUIntegerMax) {
+        CGRect frame = [self frameForPageAtIndex:_currentVideoIndex];
+        _currentVideoLoadingIndicator.center = CGPointMake(CGRectGetMidX(frame), CGRectGetMidY(frame));
+    }
+}
+
+#pragma mark - Grid
+
+
+#pragma mark - Control Hiding / Showing
+
+
+#pragma mark - Properties
+
+- (void)setCurrentPhotoIndex:(NSUInteger)index {
+    // Validate
+    NSUInteger photoCount = [self numberOfPhotos];
+    if (photoCount == 0) {
+        index = 0;
+    } else {
+        if (index >= photoCount)
+            index = [self numberOfPhotos]-1;
+    }
+    _currentPageIndex = index;
+    if ([self isViewLoaded]) {
+//        [self jumpToPageAtIndex:index animated:NO];
+        if (!_viewIsActive)
+            [self tilePages]; // Force tiling if view is not visible
+    }
+}
+
+
+
 
 - (UIWindow *)overlayWindow {
     if (!_overlayWindow) {

@@ -154,7 +154,6 @@
                 // Set zoom to minimum zoom
                 [self setMaxMinZoomScalesForCurrentBounds];
             } else {
-                _photoImageView.contentMode = UIViewContentModeCenter;
                 FLAnimatedImage *img = (FLAnimatedImage *)tmpImage;
                 _photoImageView.hidden = NO;
                 _photoImageView.animatedImage = img;
@@ -382,6 +381,8 @@
     [self setNeedsLayout];
     [self layoutIfNeeded];
 }
+
+#pragma mark - Tap Detection
 
 
 @end

@@ -11,6 +11,7 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "FLAnimatedImage.h"
 #import "LJBrowserHelper.h"
+#import "LJPhotoBrowser.h"
 
 @interface LJPhoto () {
     BOOL _loadingInProgress;
@@ -24,6 +25,8 @@
 @property (nonatomic, copy) NSURL *photoURL;
 @property (nonatomic, copy) NSString *filePath;
 @property (nonatomic, strong) PHAsset *asset;
+@property (nonatomic) CGSize assetTargetSize;
+
 
 
 - (void)imageLoadingComplete;
@@ -48,8 +51,6 @@
 + (LJPhoto *)photoWithURL:(NSURL *)url {
     return [[LJPhoto alloc] initWithURL:url];
 }
-
-
 
 #pragma mark - Init
 
@@ -132,7 +133,7 @@
 }
 
 
-#pragma mark - MWPhoto Protocol Methods
+#pragma mark - LJPhoto Protocol Methods
 - (id)underlyingImage {
     return _underlyingImage;
 }
@@ -167,40 +168,140 @@
         // We have UIImage!
         self.underlyingImage = _image;
         [self imageLoadingComplete];
+    } else if (_photoURL) {
+        
+        // Check what type of url it is
+        if ([[[_photoURL scheme] lowercaseString] isEqualToString:@"assets-library"]) {
+            
+            // Load from assets library
+            [self p_performLoadUnderlyingImageAndNotifyWithAssetsLibraryURL: _photoURL];
+            
+        } else if ([_photoURL isFileReferenceURL]) {
+            
+            // Load from local file async
+            [self p_performLoadUnderlyingImageAndNotifyWithLocalFileURL: _photoURL];
+            
+        } else {
+            
+            // Load async from web (using SDWebImage)
+            [self p_performLoadUnderlyingImageAndNotifyWithWebURL: _photoURL];
+            
+        }
+        
+    } else if (_asset) {
+        
+        // Load from photos asset
+        [self p_performLoadUnderlyingImageAndNotifyWithAsset: _asset targetSize:_assetTargetSize];
+        
+    } else {
+        
+        // Image is empty
+        [self imageLoadingComplete];
         
     }
+}
+
+// Load from local file
+- (void)p_performLoadUnderlyingImageAndNotifyWithWebURL:(NSURL *)url {
+    @try {
+        SDWebImageManager *manager = [SDWebImageManager sharedManager];
+        _webImageOperation = [manager loadImageWithURL:url
+                                               options:0
+                                              progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
+                                                  if (expectedSize > 0) {
+                                                      float progress = receivedSize / (float)expectedSize;
+                                                      NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                                            [NSNumber numberWithFloat:progress], @"progress",
+                                                                            self, @"photo", nil];
+                                                      [[NSNotificationCenter defaultCenter] postNotificationName:LJPHOTO_PROGRESS_NOTIFICATION object:dict];
+                                                  }
+                                              }
+                                             completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, SDImageCacheType cacheType, BOOL finished, NSURL * _Nullable imageURL) {
+                                                 if (error) {
+                                                     LJLog(@"SDWebImage failed to download image: %@", error);
+                                                 }
+                                                 _webImageOperation = nil;
+                                                 self.underlyingImage = image;
+                                                 dispatch_async(dispatch_get_main_queue(), ^{
+                                                     [self imageLoadingComplete];
+                                                 });
+                                             }];
+    } @catch (NSException *e) {
+        LJLog(@"Photo from web: %@", e);
+        _webImageOperation = nil;
+        [self imageLoadingComplete];
+    }
+}
+
+// Load from local file
+- (void)p_performLoadUnderlyingImageAndNotifyWithLocalFileURL:(NSURL *)url {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        @autoreleasepool {
+            @try {
+                self.underlyingImage = [UIImage imageWithContentsOfFile:url.path];
+                if (!_underlyingImage) {
+                    LJLog(@"Error loading photo from path: %@", url.path);
+                }
+            } @finally {
+                [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
+            }
+        }
+    });
+}
+
+// Load from asset library async
+- (void)p_performLoadUnderlyingImageAndNotifyWithAssetsLibraryURL:(NSURL *)url {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        @autoreleasepool {
+            @try {
+                ALAssetsLibrary *assetslibrary = [[ALAssetsLibrary alloc] init];
+                [assetslibrary assetForURL:url
+                               resultBlock:^(ALAsset *asset){
+                                   ALAssetRepresentation *rep = [asset defaultRepresentation];
+                                   CGImageRef iref = [rep fullScreenImage];
+                                   if (iref) {
+                                       self.underlyingImage = [UIImage imageWithCGImage:iref];
+                                   }
+                                   [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
+                               }
+                              failureBlock:^(NSError *error) {
+                                  self.underlyingImage = nil;
+                                  LJLog(@"Photo from asset library error: %@",error);
+                                  [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
+                              }];
+            } @catch (NSException *e) {
+                LJLog(@"Photo from asset library error: %@", e);
+                [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
+            }
+        }
+    });
+}
+
+
+// Load from photos library
+- (void)p_performLoadUnderlyingImageAndNotifyWithAsset:(PHAsset *)asset targetSize:(CGSize)targetSize {
     
-//    else if (_photoURL) {
-//        
-//        // Check what type of url it is
-//        if ([[[_photoURL scheme] lowercaseString] isEqualToString:@"assets-library"]) {
-//            
-//            // Load from assets library
-//            [self _performLoadUnderlyingImageAndNotifyWithAssetsLibraryURL: _photoURL];
-//            
-//        } else if ([_photoURL isFileReferenceURL]) {
-//            
-//            // Load from local file async
-//            [self _performLoadUnderlyingImageAndNotifyWithLocalFileURL: _photoURL];
-//            
-//        } else {
-//            
-//            // Load async from web (using SDWebImage)
-//            [self _performLoadUnderlyingImageAndNotifyWithWebURL: _photoURL];
-//            
-//        }
-//        
-//    } else if (_asset) {
-//        
-//        // Load from photos asset
-//        [self _performLoadUnderlyingImageAndNotifyWithAsset: _asset targetSize:_assetTargetSize];
-//        
-//    } else {
-//        
-//        // Image is empty
-//        [self imageLoadingComplete];
-//        
-//    }
+    PHImageManager *imageManager = [PHImageManager defaultManager];
+    
+    PHImageRequestOptions *options = [PHImageRequestOptions new];
+    options.networkAccessAllowed = YES;
+    options.resizeMode = PHImageRequestOptionsResizeModeFast;
+    options.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
+    options.synchronous = false;
+    options.progressHandler = ^(double progress, NSError *error, BOOL *stop, NSDictionary *info) {
+        NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
+                              [NSNumber numberWithDouble: progress], @"progress",
+                              self, @"photo", nil];
+        [[NSNotificationCenter defaultCenter] postNotificationName:LJPHOTO_PROGRESS_NOTIFICATION object:dict];
+    };
+    
+    _assetRequestID = [imageManager requestImageForAsset:asset targetSize:targetSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage *result, NSDictionary *info) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.underlyingImage = result;
+            [self imageLoadingComplete];
+        });
+    }];
+    
 }
 
 // Release if we can get it again from path or url
