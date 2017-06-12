@@ -22,13 +22,11 @@
 @property (nonatomic, assign) CGRect imageFrame;
 
 
-
 + (LJPhoto *)photoWithImage:(UIImage *)image;
 + (LJPhoto *)photoWithData:(NSData *)gifImage;
 
 + (LJPhoto *)photoWithFilePath:(NSString *)path;
 + (LJPhoto *)photoWithURL:(NSURL *)url;
-
 
 - (id)initWithImage:(id)image;
 - (id)initWithURL:(NSURL *)url;
