@@ -505,12 +505,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         }
 //        // Update nav
 //        [self updateNavigation];
-        
-        LJPhoto *photo = [self photoAtIndex:_currentPageIndex];
-
     }
-
-    
 }
 
 #pragma mark - Paging

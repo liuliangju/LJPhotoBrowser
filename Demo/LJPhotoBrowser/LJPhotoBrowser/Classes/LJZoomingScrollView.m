@@ -167,7 +167,6 @@
 }
 
 // Image failed so just show black!
-// Image failed so just show black!
 - (void)displayImageFailure {
     [self hideLoadingIndicator];
     _photoImageView.image = nil;
