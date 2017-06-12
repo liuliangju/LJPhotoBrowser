@@ -30,7 +30,6 @@
 - (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser thumbPhotoAtIndex:(NSUInteger)index;
 - (void)photoBrowser:(LJPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index;
 
-
 @end
 
 @interface LJPhotoBrowser : UIViewController <UIScrollViewDelegate>

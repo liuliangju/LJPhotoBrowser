@@ -20,8 +20,6 @@
 @property (nonatomic) BOOL isVideo;
 @property (nonatomic) BOOL isHaveOriginalImg;
 @property (nonatomic, assign) CGRect imageFrame;
-@property (nonatomic, strong) id underlyingImage;
-
 
 
 + (LJPhoto *)photoWithImage:(UIImage *)image;
@@ -29,6 +27,7 @@
 
 + (LJPhoto *)photoWithFilePath:(NSString *)path;
 + (LJPhoto *)photoWithURL:(NSURL *)url;
+
 
 - (id)initWithImage:(id)image;
 - (id)initWithURL:(NSURL *)url;

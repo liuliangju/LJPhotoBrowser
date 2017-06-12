@@ -12,6 +12,7 @@
 #import "FLAnimatedImage.h"
 #import "LJBrowserHelper.h"
 #import "LJPhotoBrowser.h"
+#import "NSData+ImageContentType.h"
 
 @interface LJPhoto () {
     BOOL _loadingInProgress;
@@ -35,7 +36,7 @@
 
 @implementation LJPhoto
 
-//@synthesize underlyingImage = _underlyingImage; // synth property from protocol
+@synthesize underlyingImage = _underlyingImage; // synth property from protocol
 
 
 #pragma mark - Class Methods
@@ -220,7 +221,14 @@
                                                      LJLog(@"SDWebImage failed to download image: %@", error);
                                                  }
                                                  _webImageOperation = nil;
-                                                 self.underlyingImage = image;
+                                                 
+                                                 SDImageFormat imageFormat = [NSData sd_imageFormatForImageData:data];
+
+                                                 if (imageFormat == SDImageFormatGIF) {
+                                                     self.underlyingImage = [FLAnimatedImage animatedImageWithGIFData:data];
+                                                 } else {
+                                                     self.underlyingImage = image;
+                                                 }
                                                  dispatch_async(dispatch_get_main_queue(), ^{
                                                      [self imageLoadingComplete];
                                                  });

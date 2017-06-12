@@ -67,7 +67,7 @@
 - (void)tilePages;
 - (BOOL)isDisplayingPageForIndex:(NSUInteger)index;
 - (LJZoomingScrollView *)pageDisplayedAtIndex:(NSUInteger)index;
-- (LJZoomingScrollView *)pageDisplayingPhoto:(id<LJPhoto>)photo;
+- (LJZoomingScrollView *)pageDisplayingPhoto:(LJPhoto *)photo;
 - (LJZoomingScrollView *)dequeueRecycledPage;
 - (void)configurePage:(LJZoomingScrollView *)page forIndex:(NSUInteger)index;
 - (void)didStartViewingPageAtIndex:(NSUInteger)index;
@@ -89,12 +89,12 @@
 
 // Data
 - (NSUInteger)numberOfPhotos;
-- (id<LJPhoto>)photoAtIndex:(NSUInteger)index;
-- (id<LJPhoto>)thumbPhotoAtIndex:(NSUInteger)index;
-- (id)imageForPhoto:(id<LJPhoto>)photo;
+- (LJPhoto *)photoAtIndex:(NSUInteger)index;
+- (LJPhoto *)thumbPhotoAtIndex:(NSUInteger)index;
+- (id)imageForPhoto:(LJPhoto *)photo;
 - (BOOL)photoIsSelectedAtIndex:(NSUInteger)index;
 - (void)setPhotoSelected:(BOOL)selected atIndex:(NSUInteger)index;
-- (void)loadAdjacentPhotosIfNecessary:(id<LJPhoto>)photo;
+- (void)loadAdjacentPhotosIfNecessary:(LJPhoto *)photo;
 - (void)releaseAllUnderlyingPhotos:(BOOL)preserveCurrent;
 
 

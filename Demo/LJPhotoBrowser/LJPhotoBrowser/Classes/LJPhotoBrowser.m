@@ -9,6 +9,8 @@
 #import "LJPhotoBrowser.h"
 #import "LJCommonMacro.h"
 #import "LJPhotoBrowserPrivate.h"
+#import "SDImageCache.h"
+
 
 #define PADDING                  10
 
@@ -127,6 +129,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _pagingScrollView.delegate = nil;
     [[NSNotificationCenter defaultCenter]removeObserver:self];
     [self releaseAllUnderlyingPhotos:NO];
+    [[SDImageCache sharedImageCache] clearMemory]; // clear memory
 }
 
 - (void)releaseAllUnderlyingPhotos:(BOOL)preserveCurrent {
@@ -415,8 +418,8 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return _photoCount;
 }
 
-- (id<LJPhoto>)photoAtIndex:(NSUInteger)index {
-    id <LJPhoto> photo = nil;
+- (LJPhoto *)photoAtIndex:(NSUInteger)index {
+    LJPhoto *photo = nil;
     if (index < _photos.count) {
         if ([_photos objectAtIndex:index] == [NSNull null]) {
             if ([_delegate respondsToSelector:@selector(photoBrowser:photoAtIndex:)]) {
@@ -432,8 +435,8 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return photo;
 }
 
-- (id<LJPhoto>)thumbPhotoAtIndex:(NSUInteger)index {
-    id <LJPhoto> photo = nil;
+- (LJPhoto *)thumbPhotoAtIndex:(NSUInteger)index {
+    LJPhoto *photo = nil;
     if (index < _thumbPhotos.count) {
         if ([_thumbPhotos objectAtIndex:index] == [NSNull null]) {
             if ([_delegate respondsToSelector:@selector(photoBrowser:thumbPhotoAtIndex:)]) {
@@ -447,7 +450,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return photo;
 }
 
-- (id)imageForPhoto:(id<LJPhoto>)photo {
+- (id)imageForPhoto:(LJPhoto *)photo {
     if (photo) {
         // Get image or obtain in background
         if ([photo underlyingImage]) {
@@ -459,7 +462,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return nil;
 }
 
-- (void)loadAdjacentPhotosIfNecessary:(id<LJPhoto>)photo {
+- (void)loadAdjacentPhotosIfNecessary:(LJPhoto *)photo {
     LJZoomingScrollView *page = [self pageDisplayingPhoto:photo];
     if (page) {
         // If page is current page then initiate loading of previous and next pages
@@ -467,7 +470,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         if (_currentPageIndex == pageIndex) {
             if (pageIndex > 0) {
                 // Preload index - 1
-                id <LJPhoto> photo = [self photoAtIndex:pageIndex-1];
+                LJPhoto *photo = [self photoAtIndex:pageIndex-1];
                 if (![photo underlyingImage]) {
                     [photo loadUnderlyingImageAndNotify];
                     LJLog(@"Pre-loading image at index %lu", (unsigned long)pageIndex-1);
@@ -475,7 +478,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             }
             if (pageIndex < [self numberOfPhotos] - 1) {
                 // Preload index + 1
-                id <LJPhoto> photo = [self photoAtIndex:pageIndex+1];
+                LJPhoto *photo = [self photoAtIndex:pageIndex+1];
                 if (![photo underlyingImage]) {
                     [photo loadUnderlyingImageAndNotify];
                     LJLog(@"Pre-loading image at index %lu", (unsigned long)pageIndex+1);
@@ -488,7 +491,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 
 #pragma mark - LJPhoto Loading Notification
 - (void)handleLJPhotoLoadingDidEndNotification:(NSNotification *)notification {
-    id <LJPhoto> photo = [notification object];
+    LJPhoto *photo = [notification object];
     LJZoomingScrollView *page = [self pageDisplayingPhoto:photo];
     if (page) {
         if ([photo underlyingImage]) {
@@ -602,7 +605,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     return thePage;
 }
 
-- (LJZoomingScrollView *)pageDisplayingPhoto:(id<LJPhoto>)photo {
+- (LJZoomingScrollView *)pageDisplayingPhoto:(LJPhoto *)photo {
     LJZoomingScrollView *thePage = nil;
     for (LJZoomingScrollView *page in _visiblePages) {
         if (page.photo == photo) {
