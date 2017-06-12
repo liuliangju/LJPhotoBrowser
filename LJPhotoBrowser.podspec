@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.author       = { "liuliangju" => "liangjulliu@163.com" }
   s.platform     = :ios, "7.0"
   s.source       = { :git => "https://github.com/liuliangju/LJPhotoBrowser.git", :tag => s.version.to_s}
-  s.source_files  = "LJPhotoBrowser/Classes/**/*"
+  s.source_files  = "LJPhotoBrowser/Classes/*.{h,m}"
   s.resource_bundles = {
     'LJPhotoBrowser' => ['LJPhotoBrowser/Assets/*.png']
   }   
