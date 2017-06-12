@@ -25,13 +25,13 @@
 + (LJPhoto *)photoWithImage:(UIImage *)image;
 + (LJPhoto *)photoWithData:(NSData *)gifImage;
 
-+ (LJPhoto *)photoWithFilePath:(NSString *)path;
+//+ (LJPhoto *)photoWithFilePath:(NSString *)path;
 + (LJPhoto *)photoWithURL:(NSURL *)url;
 
 
 - (id)initWithImage:(id)image;
 - (id)initWithURL:(NSURL *)url;
-- (id)initWithFilePath:(NSString *)path;
+//- (id)initWithFilePath:(NSString *)path;
 
 
 @end

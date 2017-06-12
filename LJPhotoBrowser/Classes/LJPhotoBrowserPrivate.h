@@ -119,7 +119,6 @@
 - (LJPhoto *)photoAtIndex:(NSUInteger)index;
 - (LJPhoto *)thumbPhotoAtIndex:(NSUInteger)index;
 - (id)imageForPhoto:(LJPhoto *)photo;
-- (BOOL)photoIsSelectedAtIndex:(NSUInteger)index;
 - (void)loadAdjacentPhotosIfNecessary:(LJPhoto *)photo;
 - (void)releaseAllUnderlyingPhotos:(BOOL)preserveCurrent;
 

@@ -49,7 +49,6 @@
 // Init
 - (instancetype)initWithDelegate:(id <LJPhotoBrowserDelegate>)delegate;
 - (instancetype)initWithPhotos:(NSArray *)photosArray;
-- (void)showPhotos:(NSArray *)photos fromIndex:(NSInteger)index; //This way the initialization using Window as a background
 - (void)showPhotoBrowserWithFirstPhoto:(LJPhoto *)photo;
 
 
