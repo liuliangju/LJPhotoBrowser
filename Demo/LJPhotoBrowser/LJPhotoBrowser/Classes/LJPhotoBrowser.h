@@ -22,12 +22,12 @@
 @protocol LJPhotoBrowserDelegate <NSObject>
 
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(LJPhotoBrowser *)photoBrowser;
-- (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index;
+- (LJPhoto *)photoBrowser:(LJPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index;
 
 @optional
 
 - (void)photoBrowserDidFinishModalPresentation:(LJPhotoBrowser *)photoBrowser;
-- (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser thumbPhotoAtIndex:(NSUInteger)index;
+- (LJPhoto *)photoBrowser:(LJPhotoBrowser *)photoBrowser thumbPhotoAtIndex:(NSUInteger)index;
 - (void)photoBrowser:(LJPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index;
 
 @end

@@ -226,10 +226,13 @@
 }
 
 - (void)photoBrowser:(LJPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index {
+    
+     LJPhoto *photo = self.photos[index];
+    
     NSLog(@"Did start viewing photo at index %lu", (unsigned long)index);
 }
 
-- (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
+- (LJPhoto *)photoBrowser:(LJPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
     
     for (int i = 0; i < self.photos.count; i++) {
         LJPhoto *photo = self.photos[i];

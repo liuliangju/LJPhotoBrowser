@@ -103,7 +103,7 @@
 }
 
 #pragma mark - Image
-- (void)setPhoto:(id<LJPhoto>)photo {
+- (void)setPhoto:(LJPhoto *)photo {
     // Cancel any loading on old photo
     if (_photo && photo == nil) {
         if ([_photo respondsToSelector:@selector(cancelAnyLoading)]) {
@@ -111,7 +111,6 @@
         }
     }
     _photo = photo;
-    
     id tmpImage = [_photoBrowser imageForPhoto:_photo];
     if (tmpImage) {
         [self displayImage];
@@ -122,8 +121,7 @@
 }
 
 - (void)displayImage {
-    if (_photo && _photoImageView.image == nil) {
-        
+    if (_photo) {
         // Reset
         self.maximumZoomScale = 1;
         self.minimumZoomScale = 1;
