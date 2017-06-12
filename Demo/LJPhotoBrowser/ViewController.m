@@ -166,9 +166,9 @@
             [photos addObject:photo];
             photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo5" ofType:@"jpg"]]];
             [photos addObject:photo];
-//            photo = [LJPhoto photoWithData:[NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"photo11" ofType:@"gif"]]];
+            photo = [LJPhoto photoWithData:[NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"photo11" ofType:@"gif"]]];
             
-            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"gif"]]];
+//            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"gif"]]];
 //            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"gif"]]];
 
             [photos addObject:photo];
@@ -228,19 +228,10 @@
 
 - (void)photoBrowser:(LJPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index {
     
-     LJPhoto *photo = self.photos[index];
-    
     NSLog(@"Did start viewing photo at index %lu", (unsigned long)index);
 }
 
 - (LJPhoto *)photoBrowser:(LJPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
-    
-    for (int i = 0; i < self.photos.count; i++) {
-        LJPhoto *photo = self.photos[i];
-        NSLog(@"photo=====%@===%d", photo,i);
-    }
-    
-    
     if (index < self.photos.count)
         return [self.photos objectAtIndex:index];
     return nil;
