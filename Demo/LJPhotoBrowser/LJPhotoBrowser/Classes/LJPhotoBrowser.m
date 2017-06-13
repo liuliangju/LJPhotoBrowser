@@ -382,7 +382,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 
 - (void)willMoveToParentViewController:(UIViewController *)parent {
     if (parent && _hasBelongedToViewController) {
-        [NSException raise:@"MWPhotoBrowser Instance Reuse" format:@"MWPhotoBrowser instances cannot be reused."];
+        [NSException raise:@"LJPhotoBrowser Instance Reuse" format:@"LJPhotoBrowser instances cannot be reused."];
     }
 }
 
@@ -621,6 +621,16 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 - (id)imageForPhoto:(LJPhoto *)photo {
     if (photo) {
         // Get image or obtain in background
+        
+        id image;
+        if (photo.isHaveOriginalImg) {
+            image = [[SDImageCache sharedImageCache]imageFromCacheForKey:photo.originalImgUrl.absoluteString];
+            if (image) {
+                photo.underlyingImage = image;
+                return image;
+            }
+        }
+        
         if ([photo underlyingImage]) {
             return [photo underlyingImage];
         } else {

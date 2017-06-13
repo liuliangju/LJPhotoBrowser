@@ -249,7 +249,6 @@
                                                  _webImageOperation = nil;
                                                  
                                                  SDImageFormat imageFormat = [NSData sd_imageFormatForImageData:data];
-                                                 
                                                  if (imageFormat == SDImageFormatGIF) {
                                                      self.underlyingImage = [FLAnimatedImage animatedImageWithGIFData:data];
                                                  } else {
