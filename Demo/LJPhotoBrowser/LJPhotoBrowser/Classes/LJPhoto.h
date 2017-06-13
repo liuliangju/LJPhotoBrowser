@@ -14,8 +14,8 @@
 
 //@property (nonatomic, strong) NSString *caption;
 @property (nonatomic, copy) NSURL *photoURL;
+@property (nonatomic, copy) NSURL *originalImgUrl;
 @property (nonatomic, copy) NSString *filePath;
-
 @property (nonatomic, strong) NSURL *videoURL;
 @property (nonatomic, strong) id image;
 @property (nonatomic, strong) UIImage *placeHolder;

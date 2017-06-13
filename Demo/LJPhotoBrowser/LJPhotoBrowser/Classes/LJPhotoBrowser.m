@@ -1077,7 +1077,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             break;
         }
     }
-    [photo p_performLoadUnderlyingImageAndNotifyWithWebURL:photo.photoURL isOriginalImg:YES];
+    [photo p_performLoadUnderlyingImageAndNotifyWithWebURL:photo.originalImgUrl isOriginalImg:YES];
 }
 
 
