@@ -35,7 +35,6 @@
 
 @interface LJPhotoBrowser : UIViewController <UIScrollViewDelegate>
 
-
 @property (nonatomic, weak) IBOutlet id<LJPhotoBrowserDelegate> delegate;
 @property (nonatomic) BOOL zoomPhotosToFill;
 @property (nonatomic) BOOL enableSwipeToDismiss;
@@ -49,7 +48,8 @@
 // Init
 - (instancetype)initWithDelegate:(id <LJPhotoBrowserDelegate>)delegate;
 - (instancetype)initWithPhotos:(NSArray *)photosArray;
-- (void)showPhotoBrowserWithFirstPhoto:(LJPhoto *)photo;
+- (void)showPhotoBrowserWithFirstPhoto:(LJPhoto *)photo; //This way the initialization using Window as a background
+
 
 
 // Reloads the photo browser and refetches data

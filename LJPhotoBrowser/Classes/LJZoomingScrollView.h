@@ -15,6 +15,7 @@
 @property (nonatomic, assign) NSUInteger index;
 @property (nonatomic, strong) LJPhoto *photo;
 @property (nonatomic, weak) UIButton *playButton;
+@property (nonatomic, weak) UIButton *originalBtn;
 
 
 - (instancetype)initWithPhotoBrowser:(LJPhotoBrowser *)browser;
@@ -24,6 +25,8 @@
 - (void)prepareForReuse;
 - (BOOL)displayingVideo;
 - (void)setImageHidden:(BOOL)hidden;
+
+- (BOOL)disloadingOriginalBtn;
 
 
 @end

@@ -23,8 +23,7 @@
 
 //@property (nonatomic, strong) id image;
 //@property (nonatomic, strong) UIImage *placeHolder;
-@property (nonatomic, copy) NSURL *photoURL;
-@property (nonatomic, copy) NSString *filePath;
+
 @property (nonatomic, strong) PHAsset *asset;
 @property (nonatomic) CGSize assetTargetSize;
 
@@ -102,12 +101,23 @@
     [self cancelAnyLoading];
 }
 
+#pragma mark - OriginalImage
+
+- (void)loadOriginalImageWithURL:(NSURL *)originalImgUrl {
+    
+    [self p_performLoadUnderlyingImageAndNotifyWithWebURL:originalImgUrl isOriginalImg:YES];
+    
+}
+
+
 #pragma mark - Video
 
 - (void)setVideoURL:(NSURL *)videoURL {
     _videoURL = videoURL;
     self.isVideo = YES;
 }
+
+
 
 - (void)getVideoURL:(void (^)(NSURL *url))completion {
     if (_videoURL) {
@@ -202,18 +212,34 @@
 }
 
 // Load from local file
+
 - (void)p_performLoadUnderlyingImageAndNotifyWithWebURL:(NSURL *)url {
+    [self p_performLoadUnderlyingImageAndNotifyWithWebURL:url isOriginalImg:NO];
+}
+
+
+- (void)p_performLoadUnderlyingImageAndNotifyWithWebURL:(NSURL *)url isOriginalImg:(BOOL)isOriginal {
+
     @try {
         SDWebImageManager *manager = [SDWebImageManager sharedManager];
         _webImageOperation = [manager loadImageWithURL:url
-                                               options:0
+                                               options:SDWebImageRefreshCached
                                               progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
-                                                  if (expectedSize > 0) {
-                                                      float progress = receivedSize / (float)expectedSize;
+                                                  
+                                                  if (receivedSize > 0) {
+                                                      double progress = 100.f * receivedSize / expectedSize;
                                                       NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                            [NSNumber numberWithFloat:progress], @"progress",
+                                                                            [NSNumber numberWithDouble:progress], @"progress",
                                                                             self, @"photo", nil];
                                                       [[NSNotificationCenter defaultCenter] postNotificationName:LJPHOTO_PROGRESS_NOTIFICATION object:dict];
+                                                      if (isOriginal) {
+                                                          NSString *stringFloat =[NSString stringWithFormat:@"%.f%@",progress, @"%"];
+
+                                                          NSDictionary *tmpdict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                                                   stringFloat, @"progress",
+                                                                                   self, @"photo", nil];
+                                                          [[NSNotificationCenter defaultCenter] postNotificationName:LJPHOTO_LOADING_ORIGINAL_NOTIFICATION object:tmpdict];
+                                                      }
                                                   }
                                               }
                                              completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, SDImageCacheType cacheType, BOOL finished, NSURL * _Nullable imageURL) {
@@ -223,7 +249,6 @@
                                                  _webImageOperation = nil;
                                                  
                                                  SDImageFormat imageFormat = [NSData sd_imageFormatForImageData:data];
-
                                                  if (imageFormat == SDImageFormatGIF) {
                                                      self.underlyingImage = [FLAnimatedImage animatedImageWithGIFData:data];
                                                  } else {
@@ -239,7 +264,6 @@
         [self imageLoadingComplete];
     }
 }
-
 // Load from local file
 - (void)p_performLoadUnderlyingImageAndNotifyWithLocalFileURL:(NSURL *)url {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{

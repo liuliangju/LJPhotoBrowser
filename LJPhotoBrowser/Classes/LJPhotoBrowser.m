@@ -10,9 +10,10 @@
 #import "LJCommonMacro.h"
 #import "LJPhotoBrowserPrivate.h"
 #import "SDImageCache.h"
+#import "FLAnimatedImage.h"
 
-
-#define PADDING                  10
+#define PADDING                                           10
+#define kDownLoadOriginalImgButtonWidth                  100
 
 static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 
@@ -53,8 +54,8 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (void)showPhotoBrowserWithFirstPhoto:(LJPhoto *)photo {
+    self.overlayWindow.hidden = NO;
     if (photo.image) {
-        self.overlayWindow.hidden = NO;
         _avatarImageView.image = photo.image;
         CGRect fromFrame = [LJBrowserHelper calcfromFrame:photo];
         CGRect toFrame = [LJBrowserHelper calcToFrame:photo];
@@ -69,11 +70,14 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             [self reloadData];
         }];
     } else {  // if firstPhoto image is nil download the images
-        _avatarImageView.hidden = YES;
-        _backgroundView.hidden = YES;
-//        [_photos removeAllObjects];
-//        [_thumbPhotos removeAllObjects];
-        [self reloadData];
+        [UIView animateWithDuration:self.animationTime animations:^{
+            _backgroundView.alpha = 1;
+            _pagingScrollView.alpha = 1;
+        } completion:^(BOOL finished) {
+            _avatarImageView.hidden = YES;
+            _backgroundView.hidden = YES;
+            [self reloadData];
+        }];
     }
 }
 
@@ -82,6 +86,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _currentPageIndex = 0;
     _previousPageIndex = NSUIntegerMax;
     _currentVideoIndex = NSUIntegerMax;
+    _currentOriginalIndex = NSUIntegerMax;
     _previousLayoutBounds = CGRectZero;
     _performingLayout = NO; // Reset on view did appear
     _zoomPhotosToFill = YES;
@@ -99,16 +104,21 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _backgroundView.alpha = 0;
     
     // 用于查看图片的UIImageView
-    _avatarImageView = [[UIImageView alloc] init];
+    _avatarImageView = [[FLAnimatedImageView alloc] init];
     _avatarImageView.backgroundColor = [UIColor clearColor];
     _avatarImageView.clipsToBounds = YES;
     _avatarImageView.contentMode = UIViewContentModeScaleAspectFit;
     
     
-    // Listen for MWPhoto notifications
+    // Listen for LJPhoto notifications
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleLJPhotoLoadingDidEndNotification:)
                                                  name:LJPHOTO_LOADING_DID_END_NOTIFICATION
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleLJPhotoLoadingOriginalNotification:)
+                                                 name:LJPHOTO_LOADING_ORIGINAL_NOTIFICATION
                                                object:nil];
     
     // Custom
@@ -286,9 +296,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         [self.view addSubview:_avatarImageView];
     } else {
         [self p_additionalInitialisation];
-        
-        
-        
         // Status bar
         if (!_viewHasAppearedInitially) {
             _leaveStatusBarAlone = [self presentingViewControllerPrefersStatusBarHidden];
@@ -375,7 +382,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 
 - (void)willMoveToParentViewController:(UIViewController *)parent {
     if (parent && _hasBelongedToViewController) {
-        [NSException raise:@"MWPhotoBrowser Instance Reuse" format:@"MWPhotoBrowser instances cannot be reused."];
+        [NSException raise:@"LJPhotoBrowser Instance Reuse" format:@"LJPhotoBrowser instances cannot be reused."];
     }
 }
 
@@ -460,6 +467,9 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             page.playButton.frame = [self frameForPlayButton:page.playButton atIndex:index];
         }
         
+        if (page.originalBtn) {
+            page.originalBtn.frame = [self frameForOriginalBtn:page.originalBtn atIndex:index];
+        }
         // Adjust scales if bounds has changed since last time
         if (!CGRectEqualToRect(_previousLayoutBounds, self.view.bounds)) {
             // Update zooms for new bounds
@@ -611,6 +621,17 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 - (id)imageForPhoto:(LJPhoto *)photo {
     if (photo) {
         // Get image or obtain in background
+        
+        id image;
+        if (photo.isHaveOriginalImg) {
+            image = [[SDImageCache sharedImageCache]imageFromCacheForKey:photo.originalImgUrl.absoluteString];
+            if (image) {
+                _originalLasLoad = YES;
+                photo.underlyingImage = image;
+                return image;
+            }
+        }
+        
         if ([photo underlyingImage]) {
             return [photo underlyingImage];
         } else {
@@ -647,24 +668,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 
-#pragma mark - LJPhoto Loading Notification
-- (void)handleLJPhotoLoadingDidEndNotification:(NSNotification *)notification {
-    LJPhoto *photo = [notification object];
-    LJZoomingScrollView *page = [self pageDisplayingPhoto:photo];
-    if (page) {
-        if ([photo underlyingImage]) {
-            // Successful load
-            [page displayImage];
-            [self loadAdjacentPhotosIfNecessary:photo];
-        } else {
-            // Failed to load
-            [page displayImageFailure];
-        }
-        // Update nav
-        [self updateNavigation];
-    }
-}
-
 #pragma mark - Paging
 
 - (void)tilePages {
@@ -689,6 +692,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 //            [page.captionView removeFromSuperview];
 //            [page.selectedButton removeFromSuperview];
             [page.playButton removeFromSuperview];
+            [page.originalBtn removeFromSuperview];
             [page prepareForReuse];
             [page removeFromSuperview];
             LJLog(@"Removed page at index %lu", (unsigned long)pageIndex);
@@ -727,9 +731,21 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
                 [_pagingScrollView addSubview:playButton];
                 page.playButton = playButton;
             }
+            
+            if (page.disloadingOriginalBtn) {
+                NSString *downLoadTitle =[NSString stringWithFormat:@"查看原图(%@) ",page.photo.totalSize];
+                [ self.originalBtn setTitle:downLoadTitle forState:UIControlStateNormal];
+                self.originalBtn.tag = LJPhotoBrowser_willLoad;
+                [ self.originalBtn addTarget:self action:@selector(loadOriginalTapped:) forControlEvents:UIControlEventTouchUpInside];
+                [ self.originalBtn sizeToFit];
+                 self.originalBtn.frame = [self frameForOriginalBtn:self.originalBtn atIndex:index];
+                [_pagingScrollView addSubview: self.originalBtn];
+                page.originalBtn =  self.originalBtn;
+            }
         }
     }
 }
+
 
 //- (void)updateVisiblePageStates {
 //    NSSet *copy = [_visiblePages copy];
@@ -825,6 +841,12 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     // Load adjacent images if needed and the photo is already
     // loaded. Also called after photo has been loaded in background
     LJPhoto *currentPhoto = [self photoAtIndex:index];
+        if (_originalLasLoad) {
+        LJZoomingScrollView *page = [self pageDisplayingPhoto:currentPhoto];
+        if (page.originalBtn) {
+            page.originalBtn.hidden = YES;
+        }
+    }
     if ([currentPhoto underlyingImage]) {
         // photo loaded so load ajacent now
         [self loadAdjacentPhotosIfNecessary:currentPhoto];
@@ -878,6 +900,14 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
                       floorf(CGRectGetMidY(pageFrame) - playButton.frame.size.height / 2),
                       playButton.frame.size.width,
                       playButton.frame.size.height);
+}
+
+- (CGRect)frameForOriginalBtn:(UIButton *)originalBtn atIndex:(NSUInteger)index {
+    CGRect pageFrame = [self frameForPageAtIndex:index];
+    return CGRectMake(floorf(CGRectGetMidX(pageFrame) - kDownLoadOriginalImgButtonWidth / 2),
+                      (floorf(CGRectGetMaxY(pageFrame) - originalBtn.frame.size.height) - 10),
+                      kDownLoadOriginalImgButtonWidth,
+                      25);
 }
 
 
@@ -987,6 +1017,48 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     }
 }
 
+- (void)loadOriginalTapped:(UIButton *)sender {
+   
+    NSUInteger index = [self indexForOriginalButton:sender];
+
+    LJOriginalLoadState loadingState = sender.tag;
+    
+    switch (loadingState) {
+        case LJPhotoBrowser_willLoad: { 
+            if (index != NSUIntegerMax) {
+                self.originalBtn.tag = LJPhotoBrowser_loading;
+                [self loadOriginalImageAtIndex:index];
+            }
+        }
+            break;
+        case LJPhotoBrowser_loading: {
+            LJPhoto *photo = [self photoAtIndex:index];
+            [photo cancelAnyLoading];
+            LJZoomingScrollView *thePage = nil;
+            for (LJZoomingScrollView *page in _visiblePages) {
+                if (page.index == index) {
+                    thePage = page;
+                    thePage.originalBtn.hidden = YES;
+                    break;
+                }
+            }
+        }
+            break;
+            
+        case LJPhotoBrowser_cancelLoad: {
+        }
+            break;
+            
+        case LJPhotoBrowser_LoadFail: {
+            
+        }
+            break;
+            
+        default:
+            break;
+    }
+}
+
 - (NSUInteger)indexForPlayButton:(UIView *)playButton {
     NSUInteger index = NSUIntegerMax;
     for (LJZoomingScrollView *page in _visiblePages) {
@@ -997,6 +1069,70 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     }
     return index;
 }
+
+- (NSUInteger)indexForOriginalButton:(UIView *)originalButton {
+    NSUInteger index = NSUIntegerMax;
+    for (LJZoomingScrollView *page in _visiblePages) {
+        if (page.originalBtn == originalButton) {
+            index = page.index;
+            break;
+        }
+    }
+    return index;
+}
+
+
+#pragma mark - OriginalImage
+- (void)loadOriginalImageAtIndex:(NSUInteger)index {
+    LJPhoto *photo = [self photoAtIndex:index];    
+    _currentOriginalIndex = index;
+    LJZoomingScrollView *thePage = nil;
+    for (LJZoomingScrollView *page in _visiblePages) {
+        if (page.index == _currentOriginalIndex) {
+            thePage = page;
+            [self.originalBtn setTitle:@"0.0%" forState:UIControlStateNormal];
+            break;
+        }
+    }
+    [photo p_performLoadUnderlyingImageAndNotifyWithWebURL:photo.originalImgUrl isOriginalImg:YES];
+}
+
+
+#pragma mark - LJPhoto Loading Notification
+- (void)handleLJPhotoLoadingDidEndNotification:(NSNotification *)notification {
+    LJPhoto *photo = [notification object];
+    LJZoomingScrollView *page = [self pageDisplayingPhoto:photo];
+    if (page) {
+        if (_originalLasLoad && page.originalBtn) {
+            page.originalBtn.hidden = YES;
+        }
+        if ([photo underlyingImage]) {
+            // Successful load
+            [page displayImage];
+            [self loadAdjacentPhotosIfNecessary:photo];
+        } else {
+            // Failed to load
+            [page displayImageFailure];
+        }
+        // Update nav
+        [self updateNavigation];
+    }
+}
+
+- (void)handleLJPhotoLoadingOriginalNotification:(NSNotification *)notification {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSDictionary *dict = [notification object];
+        LJPhoto *photo = [dict valueForKey:@"photo"];
+        NSString *progress = [dict valueForKey:@"progress"];
+        LJZoomingScrollView *page = [self pageDisplayingPhoto:photo];
+        [self.originalBtn setTitle:[NSString stringWithFormat:@"取消下载 %@", progress] forState:UIControlStateNormal];
+        if ([progress isEqualToString:@"99%"]) {
+            _originalLasLoad = YES;
+            page.originalBtn.hidden = YES;
+        }
+    });
+}
+
 
 #pragma mark - Video
 
@@ -1026,7 +1162,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
                 }
             });
         }];
-        
     }
 }
 
@@ -1072,6 +1207,14 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         });
     } else {
         [self dismissViewControllerAnimated:YES completion:nil];
+        if (_photos.count == 1) {
+            if (_isWindow) {
+                self.overlayWindow.hidden = YES;
+                [self.overlayWindow.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)]; // 删除UIWindow里的所有子view
+                self.overlayWindow.rootViewController = nil; // 避免影响其它的UIViewController
+                self.overlayWindow = nil;
+            }
+        }
     }
 }
 
@@ -1122,7 +1265,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     [self cancelControlHiding];
     
     // Animations & positions
-    CGFloat animatonOffset = 20;
     CGFloat animationDuration = (animated ? 0.35 : 0);
     
     // Status bar
@@ -1156,6 +1298,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 //        _toolbar.frame = [self frameForToolbarAtOrientation:self.interfaceOrientation];
 //        if (hidden) _toolbar.frame = CGRectOffset(_toolbar.frame, 0, animatonOffset);
 //        _toolbar.alpha = alpha;
+        _isHiddenNavBarHidden = hidden;
 //        
 //        // Captions
 //        for (MWZoomingScrollView *page in _visiblePages) {
@@ -1221,7 +1364,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (BOOL)areControlsHidden {
-    return 0;
+    return _isHiddenNavBarHidden;
 }
 
 - (void)hideControls {
@@ -1239,7 +1382,13 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             NSNumber *value = [NSNumber numberWithInt:UIDeviceOrientationPortrait];
             [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
         }
-        _avatarImageView.image = photo.image;
+
+        if ([photo.image isKindOfClass:[UIImage class]]) {
+            _avatarImageView.image = photo.image;
+        } else {
+            _avatarImageView.image = ((FLAnimatedImage *)photo.image).posterImage;
+        }
+        
         _avatarImageView.frame = [LJBrowserHelper calcToFrame:photo];
         _avatarImageView.hidden = NO;
         _backgroundView.hidden = NO;
@@ -1253,15 +1402,27 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             }
         } completion:^(BOOL finished) {
             [self.overlayWindow.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)]; // 删除UIWindow里的所有子view
+//            self.overlayWindow.hidden = YES;
+            
             self.overlayWindow.rootViewController = nil; // 避免影响其它的UIViewController
             [self.overlayWindow removeFromSuperview];
             self.overlayWindow = nil;
         }];
     } else {
-        [self setControlsHidden:![self areControlsHidden] animated:YES permanent:NO];
+         [self setControlsHidden:![self areControlsHidden] animated:YES permanent:NO];
     }
 }
 
+- (UIWindow *)mainWindow {
+    UIApplication *app = [UIApplication sharedApplication];
+    if ([app.delegate respondsToSelector:@selector(window)]) {
+        return [app.delegate window];
+    } else {
+        return [app keyWindow];
+    }
+}
+
+        
 #pragma mark - Properties
 
 - (void)setCurrentPhotoIndex:(NSUInteger)index {
@@ -1299,8 +1460,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 
-
-
 - (UIWindow *)overlayWindow {
     if (!_overlayWindow) {
         _overlayWindow = [[UIWindow alloc]init];
@@ -1311,6 +1470,18 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         [_overlayWindow makeKeyAndVisible];
     }
     return _overlayWindow;
+}
+
+- (UIButton *)originalBtn {
+    if (!_originalBtn) {
+        _originalBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        _originalBtn.titleLabel.font = [UIFont systemFontOfSize: 13.0];
+        [_originalBtn.layer setCornerRadius:4.0f]; //设置矩形四个圆角半径
+        [_originalBtn.layer setBorderWidth:1.0f]; //边框宽度
+        [_originalBtn.layer setMasksToBounds:YES];
+        _originalBtn.backgroundColor = [UIColor colorWithWhite:0.0 alpha:.2];
+    }
+    return _originalBtn;
 }
 
 @end

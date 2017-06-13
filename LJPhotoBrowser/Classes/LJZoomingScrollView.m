@@ -89,6 +89,7 @@
 //    self.captionView = nil;
 //    self.selectedButton = nil;
     self.playButton = nil;
+    self.originalBtn = nil;
     _photoImageView.hidden = NO;
     _photoImageView.image = nil;
     _index = NSUIntegerMax;
@@ -96,6 +97,10 @@
 
 - (BOOL)displayingVideo {
     return [_photo respondsToSelector:@selector(isVideo)] && _photo.isVideo;
+}
+
+- (BOOL)disloadingOriginalBtn {
+    return [_photo respondsToSelector:@selector(isHaveOriginalImg)] && _photo.isHaveOriginalImg;
 }
 
 - (void)setImageHidden:(BOOL)hidden {
@@ -136,7 +141,6 @@
             
             // Set image
             if ([tmpImage isKindOfClass:[UIImage class]]) {
-                
                 UIImage *img = (UIImage *)tmpImage;
                 // Set image
                 _photoImageView.image = img;
@@ -148,9 +152,6 @@
                 photoImageViewFrame.size = img.size;
                 _photoImageView.frame = photoImageViewFrame;
                 self.contentSize = photoImageViewFrame.size;
-                
-                // Set zoom to minimum zoom
-                [self setMaxMinZoomScalesForCurrentBounds];
             } else {
                 FLAnimatedImage *img = (FLAnimatedImage *)tmpImage;
                 _photoImageView.hidden = NO;
@@ -158,6 +159,7 @@
                 _photoImageView.frame = kLJPhotoBrowserScreenBounds;//[LJBrowserHelper calcToFrame:_photo];
                 self.contentSize = kLJPhotoBrowserScreenBounds.size;
             }
+            [self setMaxMinZoomScalesForCurrentBounds];
         } else {
             // Show image failure
             [self displayImageFailure];
@@ -202,13 +204,15 @@
 - (void)setProgressFromNotification:(NSNotification *)notification {
     dispatch_async(dispatch_get_main_queue(), ^{
         NSDictionary *dict = [notification object];
-        LJPhoto *photoWithProgress = [dict objectForKey:@"photo"];
-        if (photoWithProgress == self.photo) {
+        id <LJPhoto> photoWithProgress = [dict objectForKey:@"photo"];
+        if (photoWithProgress == _photo) {
+//            NSLog(@"%f==========", [[dict valueForKey:@"progress"] floatValue]);
             float progress = [[dict valueForKey:@"progress"] floatValue];
             _loadingIndicator.progress = MAX(MIN(1, progress), 0);
         }
     });
 }
+
 
 - (void)hideLoadingIndicator {
     _loadingIndicator.hidden = YES;
@@ -375,6 +379,16 @@
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
+//    CGFloat offsetX = 0.0;
+//    if (scrollView.bounds.size.width > scrollView.contentSize.width) {
+//        offsetX = (scrollView.bounds.size.width - scrollView.contentSize.width) / 2;
+//    }
+//    CGFloat offsetY = 0.0;
+//    if (scrollView.bounds.size.height > scrollView.contentSize.height) {
+//        offsetY = (scrollView.bounds.size.height - scrollView.contentSize.height) / 2;
+//    }
+//    _photoImageView.center = CGPointMake(scrollView.contentSize.width / 2 + offsetX,scrollView.contentSize.height / 2 + offsetY);
+    
     [self setNeedsLayout];
     [self layoutIfNeeded];
 }
@@ -397,23 +411,20 @@
     
     // Zoom
     if (self.zoomScale != self.minimumZoomScale && self.zoomScale != [self initialZoomScaleWithMinScale]) {
-        
         // Zoom out
         [self setZoomScale:self.minimumZoomScale animated:YES];
-        
+
     } else {
         
         // Zoom in to twice the size
-        CGFloat newZoomScale = ((self.maximumZoomScale + self.minimumZoomScale) / 2);
+        CGFloat newZoomScale = ((self.maximumZoomScale + self.minimumZoomScale) / 4);
         CGFloat xsize = self.bounds.size.width / newZoomScale;
         CGFloat ysize = self.bounds.size.height / newZoomScale;
-        [self zoomToRect:CGRectMake(touchPoint.x - xsize/2, touchPoint.y - ysize/2, xsize, ysize) animated:YES];
-        
+        [self zoomToRect:CGRectMake(touchPoint.x - xsize/2, touchPoint.y - ysize/2, 1, ysize) animated:YES];
     }
     
     // Delay controls
     [_photoBrowser hideControlsAfterDelay];
-    
 }
 
 
@@ -424,7 +435,8 @@
 }
 
 - (void)imageView:(FLAnimatedImageView *)imageView doubleTapDetected:(UITapGestureRecognizer *)tap {
-//    [self handleSingleTap:tap];
+    CGPoint touchPoint = [tap locationInView:imageView];
+    [self handleDoubleTap:touchPoint];
 }
 
 - (void)imageView:(FLAnimatedImageView *)imageView LongTapDetected:(UILongPressGestureRecognizer *)tap {
