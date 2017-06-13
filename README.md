@@ -16,3 +16,5 @@ With[ CocoaPods,](https://cocoapods.org/) add this line to your Podfile.
 ```
 pod 'LJPhotoBrowser', '~> 1.0.2' 
 ```
+Manually:
+Drag all files under `LJPhotoBrowser/**` folder into your project.
