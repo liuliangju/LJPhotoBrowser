@@ -36,6 +36,7 @@
     
     // Navigation & controls
     NSTimer *_controlVisibilityTimer;
+    BOOL *_isHiddenNavBarHidden;
     UIBarButtonItem *_previousButton, *_nextButton, *_doneButton;
     MBProgressHUD *_progressHUD;
 

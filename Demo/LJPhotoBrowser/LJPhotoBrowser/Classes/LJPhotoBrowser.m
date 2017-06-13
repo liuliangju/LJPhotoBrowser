@@ -1155,6 +1155,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 //        _toolbar.frame = [self frameForToolbarAtOrientation:self.interfaceOrientation];
 //        if (hidden) _toolbar.frame = CGRectOffset(_toolbar.frame, 0, animatonOffset);
 //        _toolbar.alpha = alpha;
+        _isHiddenNavBarHidden = hidden;
 //        
 //        // Captions
 //        for (MWZoomingScrollView *page in _visiblePages) {
@@ -1220,7 +1221,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (BOOL)areControlsHidden {
-    return 0;
+    return _isHiddenNavBarHidden;
 }
 
 - (void)hideControls {
@@ -1257,7 +1258,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             self.overlayWindow = nil;
         }];
     } else {
-        [self setControlsHidden:![self areControlsHidden] animated:YES permanent:NO];
+         [self setControlsHidden:![self areControlsHidden] animated:YES permanent:NO];
     }
 }
 
