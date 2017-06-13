@@ -136,7 +136,6 @@
             
             // Set image
             if ([tmpImage isKindOfClass:[UIImage class]]) {
-                
                 UIImage *img = (UIImage *)tmpImage;
                 // Set image
                 _photoImageView.image = img;
@@ -148,9 +147,6 @@
                 photoImageViewFrame.size = img.size;
                 _photoImageView.frame = photoImageViewFrame;
                 self.contentSize = photoImageViewFrame.size;
-                
-                // Set zoom to minimum zoom
-                [self setMaxMinZoomScalesForCurrentBounds];
             } else {
                 FLAnimatedImage *img = (FLAnimatedImage *)tmpImage;
                 _photoImageView.hidden = NO;
@@ -158,6 +154,7 @@
                 _photoImageView.frame = kLJPhotoBrowserScreenBounds;//[LJBrowserHelper calcToFrame:_photo];
                 self.contentSize = kLJPhotoBrowserScreenBounds.size;
             }
+            [self setMaxMinZoomScalesForCurrentBounds];
         } else {
             // Show image failure
             [self displayImageFailure];

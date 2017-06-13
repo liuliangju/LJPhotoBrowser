@@ -10,6 +10,7 @@
 #import "LJCommonMacro.h"
 #import "LJPhotoBrowserPrivate.h"
 #import "SDImageCache.h"
+#import "FLAnimatedImage.h"
 
 
 #define PADDING                  10
@@ -53,8 +54,8 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 }
 
 - (void)showPhotoBrowserWithFirstPhoto:(LJPhoto *)photo {
+    self.overlayWindow.hidden = NO;
     if (photo.image) {
-        self.overlayWindow.hidden = NO;
         _avatarImageView.image = photo.image;
         CGRect fromFrame = [LJBrowserHelper calcfromFrame:photo];
         CGRect toFrame = [LJBrowserHelper calcToFrame:photo];
@@ -1072,6 +1073,14 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         });
     } else {
         [self dismissViewControllerAnimated:YES completion:nil];
+        if (_photos.count == 1) {
+            if (_isWindow) {
+                self.overlayWindow.hidden = YES;
+                [self.overlayWindow.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)]; // 删除UIWindow里的所有子view
+                self.overlayWindow.rootViewController = nil; // 避免影响其它的UIViewController
+                self.overlayWindow = nil;
+            }
+        }
     }
 }
 
@@ -1239,7 +1248,13 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             NSNumber *value = [NSNumber numberWithInt:UIDeviceOrientationPortrait];
             [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
         }
-        _avatarImageView.image = photo.image;
+
+        if ([photo.image isKindOfClass:[UIImage class]]) {
+            _avatarImageView.image = photo.image;
+        } else {
+            _avatarImageView.image = ((FLAnimatedImage *)photo.image).posterImage;
+        }
+        
         _avatarImageView.frame = [LJBrowserHelper calcToFrame:photo];
         _avatarImageView.hidden = NO;
         _backgroundView.hidden = NO;
@@ -1253,6 +1268,8 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             }
         } completion:^(BOOL finished) {
             [self.overlayWindow.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)]; // 删除UIWindow里的所有子view
+//            self.overlayWindow.hidden = YES;
+            
             self.overlayWindow.rootViewController = nil; // 避免影响其它的UIViewController
             [self.overlayWindow removeFromSuperview];
             self.overlayWindow = nil;
@@ -1262,6 +1279,16 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     }
 }
 
+- (UIWindow *)mainWindow {
+    UIApplication *app = [UIApplication sharedApplication];
+    if ([app.delegate respondsToSelector:@selector(window)]) {
+        return [app.delegate window];
+    } else {
+        return [app keyWindow];
+    }
+}
+
+        
 #pragma mark - Properties
 
 - (void)setCurrentPhotoIndex:(NSUInteger)index {

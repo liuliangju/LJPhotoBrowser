@@ -68,7 +68,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 5;
+    return 2;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -81,53 +81,13 @@
     // Configure
     switch (indexPath.row) {
         case 0: {
-            cell.textLabel.text = @"Single photo";
-            cell.detailTextLabel.text = @"with caption, no grid button";
-            break;
-        }
-        case 1: {
             cell.textLabel.text = @"Multiple photos and video";
-            cell.detailTextLabel.text = @"with captions";
             break;
         }
-        case 2: {
-            cell.textLabel.text = @"Multiple photo grid";
-            cell.detailTextLabel.text = @"showing grid first, nav arrows enabled";
-            break;
-        }
-        case 3: {
-            cell.textLabel.text = @"Photo selections";
-            cell.detailTextLabel.text = @"selection enabled";
-            break;
-        }
-        case 4: {
-            cell.textLabel.text = @"Photo selection grid";
-            cell.detailTextLabel.text = @"selection enabled, start at grid";
-            break;
-        }
-        case 5: {
-            cell.textLabel.text = @"Web photos";
-            cell.detailTextLabel.text = @"photos from web";
-            break;
-        }
-        case 6: {
-            cell.textLabel.text = @"Web photo grid";
-            cell.detailTextLabel.text = @"showing grid first";
-            break;
-        }
-        case 7: {
+        
+        case 1: {
             cell.textLabel.text = @"Single video";
             cell.detailTextLabel.text = @"with auto-play";
-            break;
-        }
-        case 8: {
-            cell.textLabel.text = @"Web videos";
-            cell.detailTextLabel.text = @"showing grid first";
-            break;
-        }
-        case 9: {
-            cell.textLabel.text = @"Library photos and videos";
-            cell.detailTextLabel.text = @"media from device library";
             break;
         }
         default: break;
@@ -140,25 +100,10 @@
     
     // Browser
     NSMutableArray *photos = [[NSMutableArray alloc] init];
-    NSMutableArray *thumbs = [[NSMutableArray alloc] init];
-    LJPhoto *photo, *thumb;
-    BOOL displayActionButton = YES;
-    BOOL displaySelectionButtons = NO;
-    BOOL displayNavArrows = NO;
-    BOOL enableGrid = YES;
-    BOOL startOnGrid = NO;
+    LJPhoto *photo;
     BOOL autoPlayOnAppear = NO;
     switch (indexPath.row) {
-        case 0:
-            // Photos
-            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo2" ofType:@"jpg"]]];
-            CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
-            photo.imageFrame = rectInTableView;
-            [photos addObject:photo];
-            // Options
-            enableGrid = NO;
-            break;
-        case 1: {
+        case 0: {
             // Local Photos and Videos
             photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo1" ofType:@"jpg"]]];
             CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
@@ -178,41 +123,40 @@
             photo.videoURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video" ofType:@"mp4"]];
             [photos addObject:photo];
             
-//            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo3" ofType:@"jpg"]]];
-//            [photos addObject:photo];
             break;
         }
+            
+        case 1: {
+//            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"video_thumb" ofType:@"jpg"]]];
+            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video_thumb" ofType:@"jpg"]]];
+
+            photo.videoURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video" ofType:@"mp4"]];
+            autoPlayOnAppear = YES;
+            [photos addObject:photo];
+        }
     }
-    
     self.photos = photos;
-
-
-
+    LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]initWithDelegate:self];
+    browser.autoPlayOnAppear = autoPlayOnAppear;
     
     NSInteger selectedSegmentIndex = _segmentedControl.selectedSegmentIndex;
     
     switch (selectedSegmentIndex) {
         case 0: { // Push
-            LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]initWithDelegate:self];
             [self.navigationController pushViewController:browser animated:YES];
             break;
         }
         case 1: { // Modal
-            LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]init];
-            browser.delegate = self;
+         
             UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
-            //        nc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+            nc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
             [self presentViewController:nc animated:YES completion:nil];
             break;
         }
         default: { // Transition
-            LJPhotoBrowser *browser = [[LJPhotoBrowser alloc]init];
-            browser.delegate = self;
             browser.isWindow = YES;
             browser.animationTime = 0.3;
-
             [browser showPhotoBrowserWithFirstPhoto:self.photos[0]];
-            
             break;
         }
     }

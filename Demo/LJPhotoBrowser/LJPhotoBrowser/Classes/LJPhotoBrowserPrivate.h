@@ -13,6 +13,7 @@
 #import <MediaPlayer/MediaPlayer.h>
 #import "LJZoomingScrollView.h"
 #import "LJBrowserHelper.h"
+#import "FLAnimatedImageView.h"
 
 @interface LJPhotoBrowser () {
     
@@ -25,7 +26,7 @@
     // Views
     UIScrollView *_pagingScrollView;
     UIView *_backgroundView;           // The false background of the false at the beginning
-    UIImageView *_avatarImageView;     // The false background‘s ImageView at the beginning
+    FLAnimatedImageView *_avatarImageView;     // The false background‘s ImageView at the beginning
     
     // Paging & layout
     NSMutableSet *_visiblePages, *_recycledPages;
