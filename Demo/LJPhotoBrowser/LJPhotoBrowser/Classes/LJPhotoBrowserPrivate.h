@@ -14,8 +14,14 @@
 #import "LJZoomingScrollView.h"
 #import "LJBrowserHelper.h"
 #import "FLAnimatedImageView.h"
-#import "NSString+Extensions.h"
-#import "Masonry.h"
+
+
+typedef NS_ENUM(NSInteger, LJOriginalLoadState) {
+    LJPhotoBrowser_willLoad = 1,
+    LJPhotoBrowser_loading = 2,
+    LJPhotoBrowser_cancelLoad = 3,
+    LJPhotoBrowser_LoadFail = 4
+};
 
 @interface LJPhotoBrowser () {
     
@@ -80,6 +86,9 @@
 }
 
 @property (nonatomic, strong) UIWindow *overlayWindow;  // Full screen window
+@property (nonatomic, strong) UIButton *originalBtn;
+@property (nonatomic, assign) LJOriginalLoadState loadingState;    // 图片加载状态
+
 
 
 // Layout

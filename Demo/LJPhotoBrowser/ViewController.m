@@ -105,25 +105,26 @@
     switch (indexPath.row) {
         case 0: {
             // Local Photos and Videos
-            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo1" ofType:@"jpg"]]];
-            CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
-            photo.imageFrame = rectInTableView;
+//            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo1" ofType:@"jpg"]]];
+//            CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
+//            photo.imageFrame = rectInTableView;
+//            photo.isHaveOriginalImg = YES;
+//            photo.totalSize = @"1.6M";
+//            [photos addObject:photo];
+//            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo5" ofType:@"jpg"]]];
+//            [photos addObject:photo];
+//            photo = [LJPhoto photoWithData:[NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"photo11" ofType:@"gif"]]];
+//            
+            photo = [LJPhoto photoWithURL:[NSURL URLWithString:@"http://cochat.cn/file/3jBxTu6FF82XUCX0LwLgOZ.jpg"]];
+//            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"gif"]]];
             photo.isHaveOriginalImg = YES;
             photo.totalSize = @"1.6M";
             [photos addObject:photo];
-            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo5" ofType:@"jpg"]]];
-            [photos addObject:photo];
-            photo = [LJPhoto photoWithData:[NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"photo11" ofType:@"gif"]]];
-            
-//            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"gif"]]];
-//            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"gif"]]];
-
-            [photos addObject:photo];
-            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo6" ofType:@"jpg"]]];
-            [photos addObject:photo];
-            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video_thumb" ofType:@"jpg"]]];
-            photo.videoURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video" ofType:@"mp4"]];
-            [photos addObject:photo];
+//            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo6" ofType:@"jpg"]]];
+//            [photos addObject:photo];
+//            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video_thumb" ofType:@"jpg"]]];
+//            photo.videoURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"video" ofType:@"mp4"]];
+//            [photos addObject:photo];
             
             break;
         }

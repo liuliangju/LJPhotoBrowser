@@ -13,6 +13,9 @@
 @interface LJPhoto : NSObject <LJPhoto>
 
 //@property (nonatomic, strong) NSString *caption;
+@property (nonatomic, copy) NSURL *photoURL;
+@property (nonatomic, copy) NSString *filePath;
+
 @property (nonatomic, strong) NSURL *videoURL;
 @property (nonatomic, strong) id image;
 @property (nonatomic, strong) UIImage *placeHolder;
@@ -30,10 +33,16 @@
 + (LJPhoto *)photoWithFilePath:(NSString *)path;
 + (LJPhoto *)photoWithURL:(NSURL *)url;
 
+// Load from local file
+- (void)p_performLoadUnderlyingImageAndNotifyWithWebURL:(NSURL *)url isOriginalImg:(BOOL)isOriginal;
+
+- (void)cancelAnyLoading;
 
 - (id)initWithImage:(id)image;
 - (id)initWithURL:(NSURL *)url;
 - (id)initWithFilePath:(NSString *)path;
+
+
 
 
 @end

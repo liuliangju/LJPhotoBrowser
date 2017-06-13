@@ -11,6 +11,8 @@
 // Notifications
 #define LJPHOTO_LOADING_DID_END_NOTIFICATION @"LJPHOTO_LOADING_DID_END_NOTIFICATION"
 #define LJPHOTO_PROGRESS_NOTIFICATION @"LJPHOTO_PROGRESS_NOTIFICATION"
+#define LJPHOTO_LOADING_ORIGINAL_NOTIFICATION @"LJPHOTO_LOADING_ORIGINAL_NOTIFICATION"
+
 
 // If you wish to use your own data models for photo then they must conform
 // to this protocol. See instructions for details on each method.
@@ -61,6 +63,9 @@
 // Video
 @property (nonatomic) BOOL isVideo;
 - (void)getVideoURL:(void (^)(NSURL *url))completion;
+
+- (void)loadOriginalImageWithURL:(NSURL *)originalImgUrl;
+
 
 // Cancel any background loading of image data
 - (void)cancelAnyLoading;

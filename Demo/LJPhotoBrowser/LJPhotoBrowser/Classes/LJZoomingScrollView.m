@@ -204,13 +204,15 @@
 - (void)setProgressFromNotification:(NSNotification *)notification {
     dispatch_async(dispatch_get_main_queue(), ^{
         NSDictionary *dict = [notification object];
-        LJPhoto *photoWithProgress = [dict objectForKey:@"photo"];
-        if (photoWithProgress == self.photo) {
+        id <LJPhoto> photoWithProgress = [dict objectForKey:@"photo"];
+        if (photoWithProgress == _photo) {
+//            NSLog(@"%f==========", [[dict valueForKey:@"progress"] floatValue]);
             float progress = [[dict valueForKey:@"progress"] floatValue];
             _loadingIndicator.progress = MAX(MIN(1, progress), 0);
         }
     });
 }
+
 
 - (void)hideLoadingIndicator {
     _loadingIndicator.hidden = YES;
