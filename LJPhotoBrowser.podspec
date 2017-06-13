@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "LJPhotoBrowser"
-  s.version      = "1.0.1"
+  s.version      = "1.0.2"
   s.summary      = "A simple iOS photo and video browser with grid view, captions and selections."
 
   s.homepage     = "https://github.com/liuliangju/LJPhotoBrowser"
