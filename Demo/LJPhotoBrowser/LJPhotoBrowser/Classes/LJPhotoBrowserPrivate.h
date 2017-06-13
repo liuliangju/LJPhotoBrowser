@@ -83,6 +83,8 @@ typedef NS_ENUM(NSInteger, LJOriginalLoadState) {
     BOOL _viewHasAppearedInitially;
     BOOL _isWindow;    // whether to adopt the Window as a background
     CGPoint _currentGridContentOffset;
+    BOOL _originalLasLoad;
+
 }
 
 @property (nonatomic, strong) UIWindow *overlayWindow;  // Full screen window

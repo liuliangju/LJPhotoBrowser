@@ -626,6 +626,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         if (photo.isHaveOriginalImg) {
             image = [[SDImageCache sharedImageCache]imageFromCacheForKey:photo.originalImgUrl.absoluteString];
             if (image) {
+                _originalLasLoad = YES;
                 photo.underlyingImage = image;
                 return image;
             }
@@ -840,6 +841,12 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     // Load adjacent images if needed and the photo is already
     // loaded. Also called after photo has been loaded in background
     LJPhoto *currentPhoto = [self photoAtIndex:index];
+        if (_originalLasLoad) {
+        LJZoomingScrollView *page = [self pageDisplayingPhoto:currentPhoto];
+        if (page.originalBtn) {
+            page.originalBtn.hidden = YES;
+        }
+    }
     if ([currentPhoto underlyingImage]) {
         // photo loaded so load ajacent now
         [self loadAdjacentPhotosIfNecessary:currentPhoto];

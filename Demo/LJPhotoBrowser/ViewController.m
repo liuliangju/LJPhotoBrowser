@@ -118,6 +118,7 @@
             photo = [LJPhoto photoWithURL:[NSURL URLWithString:@"http://cochat.cn/file/3jBxTu6FF82XUCX0LwLgOZ.jpg"]];
 //            photo = [LJPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"gif"]]];
             photo.isHaveOriginalImg = YES;
+            photo.originalImgUrl = [NSURL URLWithString:@"http://cochat.cn/file/3jBxTu6FF82XUCX0LwLgOZ.jpg"];
             photo.totalSize = @"1.6M";
             [photos addObject:photo];
 //            photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo6" ofType:@"jpg"]]];
