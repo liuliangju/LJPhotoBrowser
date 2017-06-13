@@ -89,6 +89,7 @@
 //    self.captionView = nil;
 //    self.selectedButton = nil;
     self.playButton = nil;
+    self.originalBtn = nil;
     _photoImageView.hidden = NO;
     _photoImageView.image = nil;
     _index = NSUIntegerMax;
@@ -96,6 +97,10 @@
 
 - (BOOL)displayingVideo {
     return [_photo respondsToSelector:@selector(isVideo)] && _photo.isVideo;
+}
+
+- (BOOL)disloadingOriginalBtn {
+    return [_photo respondsToSelector:@selector(isHaveOriginalImg)] && _photo.isHaveOriginalImg;
 }
 
 - (void)setImageHidden:(BOOL)hidden {

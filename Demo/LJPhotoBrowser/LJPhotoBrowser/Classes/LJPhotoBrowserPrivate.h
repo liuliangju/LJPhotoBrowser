@@ -14,6 +14,8 @@
 #import "LJZoomingScrollView.h"
 #import "LJBrowserHelper.h"
 #import "FLAnimatedImageView.h"
+#import "NSString+Extensions.h"
+#import "Masonry.h"
 
 @interface LJPhotoBrowser () {
     
@@ -56,6 +58,11 @@
     MPMoviePlayerViewController *_currentVideoPlayerViewController;
     NSUInteger _currentVideoIndex;
     UIActivityIndicatorView *_currentVideoLoadingIndicator;
+    
+    // Original image
+    NSUInteger _currentOriginalIndex;
+
+
     
     // Misc
     BOOL _hasBelongedToViewController;

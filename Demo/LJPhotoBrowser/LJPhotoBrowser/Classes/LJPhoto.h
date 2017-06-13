@@ -20,6 +20,8 @@
 @property (nonatomic) BOOL isVideo;
 @property (nonatomic) BOOL isHaveOriginalImg;
 @property (nonatomic, assign) CGRect imageFrame;
+@property (nonatomic, copy) NSString *totalSize;                   //原图大小
+
 
 
 + (LJPhoto *)photoWithImage:(UIImage *)image;

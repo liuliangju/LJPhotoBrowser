@@ -108,6 +108,8 @@
             photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo1" ofType:@"jpg"]]];
             CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
             photo.imageFrame = rectInTableView;
+            photo.isHaveOriginalImg = YES;
+            photo.totalSize = @"1.6M";
             [photos addObject:photo];
             photo = [LJPhoto photoWithImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"photo5" ofType:@"jpg"]]];
             [photos addObject:photo];

@@ -12,8 +12,8 @@
 #import "SDImageCache.h"
 #import "FLAnimatedImage.h"
 
-
-#define PADDING                  10
+#define PADDING                                           10
+#define kDownLoadOriginalImgButtonWidth                  100
 
 static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 
@@ -83,6 +83,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _currentPageIndex = 0;
     _previousPageIndex = NSUIntegerMax;
     _currentVideoIndex = NSUIntegerMax;
+    _currentOriginalIndex = NSUIntegerMax;
     _previousLayoutBounds = CGRectZero;
     _performingLayout = NO; // Reset on view did appear
     _zoomPhotosToFill = YES;
@@ -100,7 +101,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     _backgroundView.alpha = 0;
     
     // 用于查看图片的UIImageView
-    _avatarImageView = [[UIImageView alloc] init];
+    _avatarImageView = [[FLAnimatedImageView alloc] init];
     _avatarImageView.backgroundColor = [UIColor clearColor];
     _avatarImageView.clipsToBounds = YES;
     _avatarImageView.contentMode = UIViewContentModeScaleAspectFit;
@@ -461,6 +462,9 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             page.playButton.frame = [self frameForPlayButton:page.playButton atIndex:index];
         }
         
+        if (page.originalBtn) {
+            page.originalBtn.frame = [self frameForOriginalBtn:page.originalBtn atIndex:index];
+        }
         // Adjust scales if bounds has changed since last time
         if (!CGRectEqualToRect(_previousLayoutBounds, self.view.bounds)) {
             // Update zooms for new bounds
@@ -690,6 +694,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
 //            [page.captionView removeFromSuperview];
 //            [page.selectedButton removeFromSuperview];
             [page.playButton removeFromSuperview];
+            [page.originalBtn removeFromSuperview];
             [page prepareForReuse];
             [page removeFromSuperview];
             LJLog(@"Removed page at index %lu", (unsigned long)pageIndex);
@@ -727,6 +732,22 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
                 playButton.frame = [self frameForPlayButton:playButton atIndex:index];
                 [_pagingScrollView addSubview:playButton];
                 page.playButton = playButton;
+            }
+            
+            if (page.disloadingOriginalBtn) {
+                UIButton *originalBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+                NSString *downLoadTitle =[NSString stringWithFormat:@"查看原图(%@) ",page.photo.totalSize];
+                [originalBtn setTitle:downLoadTitle forState:UIControlStateNormal];
+                originalBtn.titleLabel.font = [UIFont systemFontOfSize: 13.0];
+                [originalBtn.layer setCornerRadius:4.0f]; //设置矩形四个圆角半径
+                [originalBtn.layer setBorderWidth:1.0f]; //边框宽度
+                [originalBtn.layer setMasksToBounds:YES];
+                originalBtn.backgroundColor = [UIColor colorWithWhite:0.0 alpha:.2];
+                [originalBtn addTarget:self action:@selector(loadOriginalTapped:) forControlEvents:UIControlEventTouchUpInside];
+                [originalBtn sizeToFit];
+                originalBtn.frame = [self frameForOriginalBtn:originalBtn atIndex:index];
+                [_pagingScrollView addSubview:originalBtn];
+                page.originalBtn = originalBtn;
             }
         }
     }
@@ -881,6 +902,14 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
                       playButton.frame.size.height);
 }
 
+- (CGRect)frameForOriginalBtn:(UIButton *)originalBtn atIndex:(NSUInteger)index {
+    CGRect pageFrame = [self frameForPageAtIndex:index];
+    return CGRectMake(floorf(CGRectGetMidX(pageFrame) - kDownLoadOriginalImgButtonWidth / 2),
+                      (floorf(CGRectGetMaxY(pageFrame) - originalBtn.frame.size.height) - 10),
+                      kDownLoadOriginalImgButtonWidth,
+                      25);
+}
+
 
 #pragma mark - UIScrollView Delegate
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
@@ -988,6 +1017,16 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     }
 }
 
+- (void)loadOriginalTapped:(UIButton *)sender {
+    if (_currentOriginalIndex != NSUIntegerMax) {
+        return;
+    }
+    NSUInteger index = [self indexForOriginalButton:sender];
+    if (index != NSUIntegerMax) {
+        [self loadOriginalImageAtIndex:index];
+    }
+}
+
 - (NSUInteger)indexForPlayButton:(UIView *)playButton {
     NSUInteger index = NSUIntegerMax;
     for (LJZoomingScrollView *page in _visiblePages) {
@@ -998,6 +1037,26 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     }
     return index;
 }
+
+- (NSUInteger)indexForOriginalButton:(UIView *)originalButton {
+    NSUInteger index = NSUIntegerMax;
+    for (LJZoomingScrollView *page in _visiblePages) {
+        if (page.originalBtn == originalButton) {
+            index = page.index;
+            break;
+        }
+    }
+    return index;
+}
+
+
+#pragma mark - OriginalImage
+- (void)loadOriginalImageAtIndex:(NSUInteger)index {
+    LJPhoto *photo = [self photoAtIndex:index];
+    LJLog(@"下载原图========");
+    
+}
+
 
 #pragma mark - Video
 
