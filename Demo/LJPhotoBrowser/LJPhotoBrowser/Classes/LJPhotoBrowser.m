@@ -1103,7 +1103,7 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
     LJPhoto *photo = [notification object];
     LJZoomingScrollView *page = [self pageDisplayingPhoto:photo];
     if (page) {
-        if (page.originalBtn) {
+        if (_originalLasLoad && page.originalBtn) {
             page.originalBtn.hidden = YES;
         }
         if ([photo underlyingImage]) {
@@ -1126,7 +1126,8 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
         NSString *progress = [dict valueForKey:@"progress"];
         LJZoomingScrollView *page = [self pageDisplayingPhoto:photo];
         [self.originalBtn setTitle:[NSString stringWithFormat:@"取消下载 %@", progress] forState:UIControlStateNormal];
-        if ([progress isEqualToString:@"100%"]) {
+        if ([progress isEqualToString:@"99%"]) {
+            _originalLasLoad = YES;
             page.originalBtn.hidden = YES;
         }
     });
