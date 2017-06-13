@@ -13,3 +13,6 @@ Features
 
 ## Installation
 With[ CocoaPods,](https://cocoapods.org/) add this line to your Podfile.
+```
+pod 'LJPhotoBrowser', '~> 1.0.2' 
+```
