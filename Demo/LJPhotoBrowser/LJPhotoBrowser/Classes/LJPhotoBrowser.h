@@ -35,7 +35,6 @@
 
 @interface LJPhotoBrowser : UIViewController <UIScrollViewDelegate>
 
-
 @property (nonatomic, weak) IBOutlet id<LJPhotoBrowserDelegate> delegate;
 @property (nonatomic) BOOL zoomPhotosToFill;
 @property (nonatomic) BOOL enableSwipeToDismiss;

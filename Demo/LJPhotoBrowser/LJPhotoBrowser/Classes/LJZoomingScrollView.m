@@ -375,6 +375,16 @@
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
+//    CGFloat offsetX = 0.0;
+//    if (scrollView.bounds.size.width > scrollView.contentSize.width) {
+//        offsetX = (scrollView.bounds.size.width - scrollView.contentSize.width) / 2;
+//    }
+//    CGFloat offsetY = 0.0;
+//    if (scrollView.bounds.size.height > scrollView.contentSize.height) {
+//        offsetY = (scrollView.bounds.size.height - scrollView.contentSize.height) / 2;
+//    }
+//    _photoImageView.center = CGPointMake(scrollView.contentSize.width / 2 + offsetX,scrollView.contentSize.height / 2 + offsetY);
+    
     [self setNeedsLayout];
     [self layoutIfNeeded];
 }
@@ -397,23 +407,20 @@
     
     // Zoom
     if (self.zoomScale != self.minimumZoomScale && self.zoomScale != [self initialZoomScaleWithMinScale]) {
-        
         // Zoom out
         [self setZoomScale:self.minimumZoomScale animated:YES];
-        
+
     } else {
         
         // Zoom in to twice the size
-        CGFloat newZoomScale = ((self.maximumZoomScale + self.minimumZoomScale) / 2);
+        CGFloat newZoomScale = ((self.maximumZoomScale + self.minimumZoomScale) / 4);
         CGFloat xsize = self.bounds.size.width / newZoomScale;
         CGFloat ysize = self.bounds.size.height / newZoomScale;
-        [self zoomToRect:CGRectMake(touchPoint.x - xsize/2, touchPoint.y - ysize/2, xsize, ysize) animated:YES];
-        
+        [self zoomToRect:CGRectMake(touchPoint.x - xsize/2, touchPoint.y - ysize/2, 1, ysize) animated:YES];
     }
     
     // Delay controls
     [_photoBrowser hideControlsAfterDelay];
-    
 }
 
 
@@ -424,7 +431,8 @@
 }
 
 - (void)imageView:(FLAnimatedImageView *)imageView doubleTapDetected:(UITapGestureRecognizer *)tap {
-//    [self handleSingleTap:tap];
+    CGPoint touchPoint = [tap locationInView:imageView];
+    [self handleDoubleTap:touchPoint];
 }
 
 - (void)imageView:(FLAnimatedImageView *)imageView LongTapDetected:(UILongPressGestureRecognizer *)tap {
