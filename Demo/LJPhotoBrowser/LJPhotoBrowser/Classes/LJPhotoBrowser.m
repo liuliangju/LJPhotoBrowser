@@ -376,7 +376,6 @@ static void *LJVideoPlayerObservation = &LJVideoPlayerObservation;
             [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle animated:animated];
         }
     }
-    
     [super viewWillDisappear:animated];
 }
 

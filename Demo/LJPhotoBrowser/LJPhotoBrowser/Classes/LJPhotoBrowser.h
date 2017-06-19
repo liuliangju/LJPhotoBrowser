@@ -51,7 +51,6 @@
 - (void)showPhotoBrowserWithFirstPhoto:(LJPhoto *)photo; //This way the initialization using Window as a background
 
 
-
 // Reloads the photo browser and refetches data
 - (void)reloadData;
 

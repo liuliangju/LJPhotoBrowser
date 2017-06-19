@@ -183,7 +183,7 @@
     return nil;
 }
 
-//- (id <MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser thumbPhotoAtIndex:(NSUInteger)index {
+//- (id <LJPhoto>)photoBrowser:(LJPhotoBrowser *)photoBrowser thumbPhotoAtIndex:(NSUInteger)index {
 //    if (index < _thumbs.count)
 //        return [_thumbs objectAtIndex:index];
 //    return nil;
